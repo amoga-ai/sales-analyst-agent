@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { JSONUIProvider, Renderer } from "@json-render/react";
 import { registry } from "@/lib/json-render/registry";
 import uiConfig from "@/bot-configs/sales-analyst/ui.json";
+import UserBar from "@/components/UserBar";
 
 type Msg = { role: "user" | "assistant"; text: string } | { spec: any };
 type Ui =
@@ -88,6 +89,7 @@ export default function Page() {
 
   return (
     <div className="flex h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <UserBar />
       <header className="border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="text-base font-semibold">Sales Analyst</h1>
         <p className="text-xs text-zinc-500">Answer the questions to run a review</p>

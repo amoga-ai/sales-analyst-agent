@@ -15,7 +15,18 @@ export async function POST(req: Request) {
     return Response.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const reply = handle(session, { text: body.text, optionValue: body.optionValue });
+  let reply;
+  try {
+    reply = handle(session, { text: body.text, optionValue: body.optionValue });
+  } catch {
+    session.messages.push({
+      role: "assistant",
+      text: "Sorry, this step could not be completed. Please try again.",
+    });
+    reset(session);
+    session.messages.push(...openingMessages());
+    return Response.json({ messages: session.messages, ui: uiFor(session) });
+  }
   session.messages.push(...reply.messages);
 
   if (reply.runAction) {

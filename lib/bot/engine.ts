@@ -99,8 +99,14 @@ export function continueAfterApi(session: Session): Msg[] {
 }
 
 function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
-  session.nodeId = nextId;
   const next = nodes[nextId];
+  if (!next) {
+    // Reset before throwing so the session never points at a missing step,
+    // whichever caller (handle or continueAfterApi) hit it.
+    reset(session);
+    throw new Error(`Unknown flow step: ${nextId}`);
+  }
+  session.nodeId = nextId;
   if (next.type === "rule") {
     const target = evaluate(next, session.vars) ? next.then : next.else;
     return enter(session, target, prefix);
