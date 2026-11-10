@@ -1,6 +1,4 @@
-import { salesKpis } from "@/lib/sales/kpis";
-import { buildResultSpec } from "@/lib/json-render/result-layout";
-import { rangeFor } from "@/lib/bot/periods";
+import { runDailyAction } from "@/lib/daily/actions";
 import { getSession } from "@/lib/bot/session-store";
 import {
   continueAfterApi,
@@ -20,17 +18,16 @@ export async function POST(req: Request) {
   const reply = handle(session, { text: body.text, optionValue: body.optionValue });
   session.messages.push(...reply.messages);
 
-  if (reply.runAction === "sales_summary") {
+  if (reply.runAction) {
     try {
-      const range = rangeFor(session.vars.review_period);
-      if (!range) throw new Error("Unknown period");
-      const kpis = await salesKpis(range.from, range.to);
-      session.messages.push({ spec: buildResultSpec(kpis, range) });
+      const result = await runDailyAction(reply.runAction, session.id);
+      if (result.spec) session.messages.push({ spec: result.spec });
+      if (result.text) session.messages.push({ role: "assistant", text: result.text });
       session.messages.push(...continueAfterApi(session));
     } catch {
       session.messages.push({
         role: "assistant",
-        text: "Sorry, the review could not be completed.",
+        text: "Sorry, this step could not be completed. Please check the store connection and try again.",
       });
       reset(session);
       session.messages.push(...openingMessages());

@@ -1,70 +1,261 @@
 {
-  "startNode": "ask_name",
+  "startNode": "start",
   "nodes": {
-    "ask_name": {
-      "type": "question",
-      "message": "What is your name?",
-      "input": {
-        "type": "text",
-        "variable": "user_name",
-        "required": true,
-        "minLength": 2,
-        "maxLength": 80
-      },
-      "next": "select_review"
-    },
-    "select_review": {
+    "start": {
       "type": "choice",
-      "message": "Hello {{user_name}}. What would you like to review?",
+      "message": "Good morning! I am your WooCommerce Daily Order Review Agent. I will review yesterday's store performance, check orders, identify exceptions, review products and prepare recommendations for your approval.",
       "options": [
         {
-          "label": "Sales Review",
-          "value": "sales_review",
-          "actionId": "select_sales_review",
-          "next": "ask_period"
+          "label": "Start daily review",
+          "value": "start",
+          "actionId": "start_review",
+          "next": "s02"
         }
       ]
     },
-    "ask_period": {
+    "s02": {
       "type": "choice",
-      "message": "Which period would you like to review?",
-      "variable": "review_period",
+      "message": "I am checking your WooCommerce connection and API access before retrieving the orders.",
       "options": [
-        { "label": "This Month", "value": "this_month", "next": "confirm_review" },
-        { "label": "Last Month", "value": "last_month", "next": "confirm_review" },
-        { "label": "This Year", "value": "this_year", "next": "confirm_review" }
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s02",
+          "next": "s02_verify"
+        }
       ]
     },
-    "confirm_review": {
+    "s02_verify": {
+      "type": "api",
+      "action": "verify_connection",
+      "next": "s03"
+    },
+    "s03": {
+      "type": "choice",
+      "message": "Your store connection is working. I am now retrieving all orders created yesterday.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s03",
+          "next": "s03_fetch"
+        }
+      ]
+    },
+    "s03_fetch": {
+      "type": "api",
+      "action": "fetch_orders",
+      "next": "s04"
+    },
+    "s04": {
+      "type": "choice",
+      "message": "I have retrieved the orders. I am validating the data before calculating your daily performance.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s04",
+          "next": "s04_validate"
+        }
+      ]
+    },
+    "s04_validate": {
+      "type": "api",
+      "action": "validate_orders",
+      "next": "s05"
+    },
+    "s05": {
+      "type": "choice",
+      "message": "Your order data has been validated. Here is your store's performance for yesterday.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s05",
+          "next": "s05_kpis"
+        }
+      ]
+    },
+    "s05_kpis": {
+      "type": "api",
+      "action": "daily_kpis",
+      "next": "s06"
+    },
+    "s06": {
+      "type": "choice",
+      "message": "I am now checking payment status, cancellations, refunds and orders that may need attention.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s06",
+          "next": "s06_status"
+        }
+      ]
+    },
+    "s06_status": {
+      "type": "api",
+      "action": "status_exceptions",
+      "next": "s07"
+    },
+    "s07": {
+      "type": "choice",
+      "message": "Next, I am reviewing your product sales to see which products contributed most.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s07",
+          "next": "s07_products"
+        }
+      ]
+    },
+    "s07_products": {
+      "type": "api",
+      "action": "top_products",
+      "next": "s08"
+    },
+    "s08": {
+      "type": "choice",
+      "message": "I have completed the KPI, status and product reviews. I am now identifying what went well, what needs attention, and opportunities.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s08",
+          "next": "s08_findings"
+        }
+      ]
+    },
+    "s08_findings": {
+      "type": "api",
+      "action": "findings",
+      "next": "s09"
+    },
+    "s09": {
+      "type": "choice",
+      "message": "Based on yesterday's performance, I have prepared a prioritised list of recommended actions.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s09",
+          "next": "s09_recs"
+        }
+      ]
+    },
+    "s09_recs": {
+      "type": "api",
+      "action": "recommendations",
+      "next": "s10"
+    },
+    "s10": {
       "type": "approval",
-      "message": "Run the sales review for {{review_period_label}}?",
+      "message": "Your daily order review is ready for approval. Please choose a decision.",
       "options": [
         {
           "label": "Approve",
           "value": "approve",
-          "actionId": "approve_review",
-          "next": "run_review"
+          "actionId": "approve_report",
+          "next": "s11"
         },
         {
-          "label": "Cancel",
-          "value": "cancel",
-          "actionId": "cancel_review",
-          "next": "cancelled"
+          "label": "Request changes",
+          "value": "request_changes",
+          "actionId": "request_changes",
+          "next": "s08"
+        },
+        {
+          "label": "Reject",
+          "value": "reject",
+          "actionId": "reject_report",
+          "next": "rejected"
         }
       ]
     },
-    "run_review": {
+    "s11": {
       "type": "api",
-      "action": "sales_summary",
-      "next": "done"
+      "action": "publish_report",
+      "next": "s12"
     },
-    "cancelled": {
-      "type": "message",
-      "message": "Review cancelled."
+    "s12": {
+      "type": "choice",
+      "message": "Thank you. Your daily WooCommerce performance report has been approved and published. What would you like to investigate?",
+      "options": [
+        {
+          "label": "Show all failed orders",
+          "value": "failed_orders",
+          "actionId": "q_failed_orders",
+          "next": "a_failed"
+        },
+        {
+          "label": "Which products performed best?",
+          "value": "best_products",
+          "actionId": "q_best_products",
+          "next": "a_products"
+        },
+        {
+          "label": "Compare yesterday with last week",
+          "value": "compare_week",
+          "actionId": "q_compare_week",
+          "next": "a_compare"
+        },
+        {
+          "label": "Start a new review",
+          "value": "restart",
+          "actionId": "q_restart",
+          "next": "start"
+        }
+      ]
     },
-    "done": {
+    "followup": {
+      "type": "choice",
+      "message": "What would you like to investigate next?",
+      "options": [
+        {
+          "label": "Show all failed orders",
+          "value": "failed_orders",
+          "actionId": "q2_failed_orders",
+          "next": "a_failed"
+        },
+        {
+          "label": "Which products performed best?",
+          "value": "best_products",
+          "actionId": "q2_best_products",
+          "next": "a_products"
+        },
+        {
+          "label": "Compare yesterday with last week",
+          "value": "compare_week",
+          "actionId": "q2_compare_week",
+          "next": "a_compare"
+        },
+        {
+          "label": "Start a new review",
+          "value": "restart",
+          "actionId": "q2_restart",
+          "next": "start"
+        }
+      ]
+    },
+    "a_failed": {
+      "type": "api",
+      "action": "answer_failed_orders",
+      "next": "followup"
+    },
+    "a_products": {
+      "type": "api",
+      "action": "answer_best_products",
+      "next": "followup"
+    },
+    "a_compare": {
+      "type": "api",
+      "action": "answer_compare",
+      "next": "followup"
+    },
+    "rejected": {
       "type": "message",
-      "message": "Review complete."
+      "message": "The report has been rejected. I have recorded your comments."
     }
   }
 }
