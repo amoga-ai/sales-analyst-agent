@@ -7,8 +7,7 @@ export type Ui =
 
 export type Reply = {
   messages: Msg[];
-  runWorkflow?: string;
-  runPeriod?: string;
+  runAction?: string; // set when the flow reached an api step
 };
 
 const messageOf = (node: FlowNode) => ("message" in node ? node.message : "");
@@ -19,7 +18,7 @@ export function openingMessages(): Msg[] {
 
 export function uiFor(session: Session): Ui {
   const node = nodes[session.nodeId];
-  if (node.type === "choice") {
+  if (node.type === "choice" || node.type === "approval") {
     return {
       type: "choice",
       options: node.options.map((o) => ({ label: o.label, value: o.value })),
@@ -50,7 +49,7 @@ export function handle(
     return enter(session, node.next, [{ role: "user", text }]);
   }
 
-  if (node.type === "choice") {
+  if (node.type === "choice" || node.type === "approval") {
     const option =
       node.options.find((o) => o.value === input.optionValue) ??
       node.options.find((o) => o.label.toLowerCase() === text.toLowerCase());
@@ -62,28 +61,41 @@ export function handle(
         ],
       };
     }
-    session.vars[node.variable ?? session.nodeId] = option.value;
+    const key = node.type === "choice" && node.variable ? node.variable : session.nodeId;
+    session.vars[key] = option.value;
+    session.vars[`${key}_label`] = option.label;
     return enter(session, option.next, [{ role: "user", text: option.label }]);
   }
 
   return { messages: [] };
 }
 
+// Called by the route after it has run an api step successfully.
+export function continueAfterApi(session: Session): Msg[] {
+  const node = nodes[session.nodeId];
+  if (node.type !== "api") return [];
+  return enter(session, node.next, []).messages;
+}
+
 function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
   session.nodeId = nextId;
   const next = nodes[nextId];
-  if (next.type === "workflow") {
+
+  if (next.type === "api") {
+    return { messages: prefix, runAction: next.action };
+  }
+
+  if (next.type === "message") {
+    // Terminal step: show the message, then restart the bot.
+    const text = fill(next.message, session.vars);
+    reset(session);
     return {
-      messages: prefix,
-      runWorkflow: session.vars.select_review,
-      runPeriod: session.vars.review_period,
+      messages: [...prefix, { role: "assistant", text }, ...openingMessages()],
     };
   }
+
   return {
-    messages: [
-      ...prefix,
-      { role: "assistant", text: fill(messageOf(next), session.vars) },
-    ],
+    messages: [...prefix, { role: "assistant", text: fill(messageOf(next), session.vars) }],
   };
 }
 

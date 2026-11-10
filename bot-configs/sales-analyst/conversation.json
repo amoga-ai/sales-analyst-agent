@@ -22,12 +22,6 @@
           "value": "sales_review",
           "actionId": "select_sales_review",
           "next": "ask_period"
-        },
-        {
-          "label": "Sales Team Review",
-          "value": "sales_team_review",
-          "actionId": "select_sales_team_review",
-          "next": "ask_period"
         }
       ]
     },
@@ -36,14 +30,41 @@
       "message": "Which period would you like to review?",
       "variable": "review_period",
       "options": [
-        { "label": "This Month", "value": "this_month", "next": "execute_review" },
-        { "label": "Last Month", "value": "last_month", "next": "execute_review" },
-        { "label": "This Year", "value": "this_year", "next": "execute_review" }
+        { "label": "This Month", "value": "this_month", "next": "confirm_review" },
+        { "label": "Last Month", "value": "last_month", "next": "confirm_review" },
+        { "label": "This Year", "value": "this_year", "next": "confirm_review" }
       ]
     },
-    "execute_review": {
-      "type": "workflow",
-      "workflowVariable": "selected_workflow"
+    "confirm_review": {
+      "type": "approval",
+      "message": "Run the sales review for {{review_period_label}}?",
+      "options": [
+        {
+          "label": "Approve",
+          "value": "approve",
+          "actionId": "approve_review",
+          "next": "run_review"
+        },
+        {
+          "label": "Cancel",
+          "value": "cancel",
+          "actionId": "cancel_review",
+          "next": "cancelled"
+        }
+      ]
+    },
+    "run_review": {
+      "type": "api",
+      "action": "sales_summary",
+      "next": "done"
+    },
+    "cancelled": {
+      "type": "message",
+      "message": "Review cancelled."
+    },
+    "done": {
+      "type": "message",
+      "message": "Review complete."
     }
   }
 }

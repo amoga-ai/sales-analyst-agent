@@ -1,5 +1,9 @@
-type WooOrder = { id: number; status: string; total: string };
-
+export type WooOrder = {
+  id: number;
+  status: string;
+  total: string;
+  discount_total: string;
+};
 export async function fetchWooOrders(from: string, to: string): Promise<WooOrder[]> {
   const base = process.env.WOO_STORE_URL;
   const key = process.env.WOO_CONSUMER_KEY;

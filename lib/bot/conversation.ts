@@ -1,6 +1,11 @@
 import flow from "@/bot-configs/sales-analyst/conversation.json";
 
-export type Option = { label: string; value: string; actionId?: string; next: string };
+export type Option = {
+  label: string;
+  value: string;
+  actionId?: string;
+  next: string;
+};
 
 export type FlowNode =
   | {
@@ -10,7 +15,9 @@ export type FlowNode =
       next: string;
     }
   | { type: "choice"; message: string; variable?: string; options: Option[] }
-  | { type: "workflow"; workflowVariable: string };
+  | { type: "approval"; message: string; options: Option[] }
+  | { type: "api"; action: string; next: string }
+  | { type: "message"; message: string };
 
 export const startNode: string = flow.startNode;
 export const nodes = flow.nodes as unknown as Record<string, FlowNode>;
