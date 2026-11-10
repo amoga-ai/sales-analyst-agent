@@ -1,0 +1,49 @@
+{
+  "startNode": "ask_name",
+  "nodes": {
+    "ask_name": {
+      "type": "question",
+      "message": "What is your name?",
+      "input": {
+        "type": "text",
+        "variable": "user_name",
+        "required": true,
+        "minLength": 2,
+        "maxLength": 80
+      },
+      "next": "select_review"
+    },
+    "select_review": {
+      "type": "choice",
+      "message": "Hello {{user_name}}. What would you like to review?",
+      "options": [
+        {
+          "label": "Sales Review",
+          "value": "sales_review",
+          "actionId": "select_sales_review",
+          "next": "ask_period"
+        },
+        {
+          "label": "Sales Team Review",
+          "value": "sales_team_review",
+          "actionId": "select_sales_team_review",
+          "next": "ask_period"
+        }
+      ]
+    },
+    "ask_period": {
+      "type": "choice",
+      "message": "Which period would you like to review?",
+      "variable": "review_period",
+      "options": [
+        { "label": "This Month", "value": "this_month", "next": "execute_review" },
+        { "label": "Last Month", "value": "last_month", "next": "execute_review" },
+        { "label": "This Year", "value": "this_year", "next": "execute_review" }
+      ]
+    },
+    "execute_review": {
+      "type": "workflow",
+      "workflowVariable": "selected_workflow"
+    }
+  }
+}

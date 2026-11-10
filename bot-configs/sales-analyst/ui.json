@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "period": "this_year",
+  "questions": [
+    {
+      "actionId": "pending_orders",
+      "label": "How many orders are pending?",
+      "api": { "source": "woo_orders", "metric": "pending" },
+      "layout": {
+        "root": "card",
+        "elements": {
+          "card": {
+            "type": "Card",
+            "props": { "title": "Pending orders" },
+            "children": ["value"]
+          },
+          "value": {
+            "type": "MetricCard",
+            "props": { "label": "Pending orders", "value": "{{pending}}" },
+            "children": []
+          }
+        }
+      }
+    },
+    {
+      "actionId": "total_orders",
+      "label": "What is the total orders count?",
+      "api": { "source": "woo_orders", "metric": "total" },
+      "layout": {
+        "root": "card",
+        "elements": {
+          "card": {
+            "type": "Card",
+            "props": { "title": "Total orders" },
+            "children": ["value"]
+          },
+          "value": {
+            "type": "MetricCard",
+            "props": { "label": "Total orders", "value": "{{total}}" },
+            "children": []
+          }
+        }
+      }
+    },
+    {
+      "actionId": "total_orders_all_time",
+      "label": "How many orders in total, all time?",
+      "period": "all_time",
+      "api": { "source": "woo_orders", "metric": "total" },
+      "layout": {
+        "root": "card",
+        "elements": {
+          "card": {
+            "type": "Card",
+            "props": { "title": "Total orders, all time" },
+            "children": ["value"]
+          },
+          "value": {
+            "type": "MetricCard",
+            "props": { "label": "Total orders, all time", "value": "{{total}}" },
+            "children": []
+          }
+        }
+      }
+    }
+  ]
+}
