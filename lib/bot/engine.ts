@@ -27,6 +27,27 @@ export function uiFor(session: Session): Ui {
   return { type: "text" };
 }
 
+function evaluate(
+  rule: { field: string; op: string; value: string | number },
+  vars: Record<string, string>
+): boolean {
+  const left = vars[rule.field] ?? "";
+  const a = Number(left);
+  const b = Number(rule.value);
+  const numeric = left !== "" && !isNaN(a) && !isNaN(b);
+  const l: any = numeric ? a : left;
+  const r: any = numeric ? b : String(rule.value);
+  switch (rule.op) {
+    case "==": return l === r;
+    case "!=": return l !== r;
+    case ">": return l > r;
+    case "<": return l < r;
+    case ">=": return l >= r;
+    case "<=": return l <= r;
+    default: return false;
+  }
+}
+
 export function handle(
   session: Session,
   input: { text?: string; optionValue?: string }
@@ -80,6 +101,10 @@ export function continueAfterApi(session: Session): Msg[] {
 function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
   session.nodeId = nextId;
   const next = nodes[nextId];
+  if (next.type === "rule") {
+    const target = evaluate(next, session.vars) ? next.then : next.else;
+    return enter(session, target, prefix);
+  }
 
   if (next.type === "api") {
     return { messages: prefix, runAction: next.action };

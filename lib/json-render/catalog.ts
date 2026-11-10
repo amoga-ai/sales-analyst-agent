@@ -42,6 +42,14 @@ export const catalog = defineCatalog(schema, {
       }),
       description: "A horizontal bar chart with one bar per label",
     },
+        DonutChart: {
+      props: z.object({
+        title: z.string(),
+        labels: z.array(z.string()),
+        values: z.array(z.number()),
+      }),
+      description: "A donut chart with a legend, one slice per label",
+    },
   },
   actions: {},
 });

@@ -21,6 +21,7 @@ export async function POST(req: Request) {
   if (reply.runAction) {
     try {
       const result = await runDailyAction(reply.runAction, session.id);
+      if (result.vars) Object.assign(session.vars, result.vars);
       if (result.spec) session.messages.push({ spec: result.spec });
       if (result.text) session.messages.push({ role: "assistant", text: result.text });
       session.messages.push(...continueAfterApi(session));

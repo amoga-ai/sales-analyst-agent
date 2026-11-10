@@ -13,6 +13,36 @@
         }
       ]
     },
+    "check_validation": {
+      "type": "rule",
+      "field": "validation_ok",
+      "op": "==",
+      "value": "true",
+      "then": "s05",
+      "else": "validation_failed"
+    },
+    "validation_failed": {
+      "type": "choice",
+      "message": "Some data checks failed, so this review may be incomplete. Please check the orders in WooCommerce before relying on these numbers.",
+      "options": [
+        {
+          "label": "Continue with partial data",
+          "value": "partial",
+          "actionId": "validation_partial",
+          "next": "s05"
+        },
+        {
+          "label": "Stop review",
+          "value": "stop",
+          "actionId": "validation_stop",
+          "next": "stopped"
+        }
+      ]
+    },
+    "stopped": {
+      "type": "message",
+      "message": "Daily review stopped. Nothing was published."
+    },
     "s02": {
       "type": "choice",
       "message": "I am checking your WooCommerce connection and API access before retrieving the orders.",
@@ -62,7 +92,7 @@
     "s04_validate": {
       "type": "api",
       "action": "validate_orders",
-      "next": "s05"
+      "next": "check_validation"
     },
     "s05": {
       "type": "choice",

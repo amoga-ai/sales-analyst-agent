@@ -17,7 +17,8 @@ export type FlowNode =
   | { type: "choice"; message: string; variable?: string; options: Option[] }
   | { type: "approval"; message: string; options: Option[] }
   | { type: "api"; action: string; next: string }
-  | { type: "message"; message: string };
+  | { type: "message"; message: string }
+  | { type: "rule"; field: string; op: string; value: string | number; then: string; else: string };
 
 export const startNode: string = flow.startNode;
 export const nodes = flow.nodes as unknown as Record<string, FlowNode>;

@@ -31,6 +31,11 @@ const bars = (id: string, title: string, labels: string[], values: number[]): Bl
   el: { type: "BarChart", props: { title, labels, values }, children: [] },
 });
 
+const donut = (id: string, title: string, labels: string[], values: number[]): Block => ({
+  id,
+  el: { type: "DonutChart", props: { title, labels, values }, children: [] },
+});
+
 function metrics(id: string, columns: number, items: [string, string | number][]): Block {
   const extra: Record<string, El> = {};
   const children = items.map(([label, value], i) => {
@@ -124,7 +129,7 @@ export function kpiReport(r: Review, prev: Review, lastWeek: Review) {
 export function statusReport(r: Review) {
   const labels = Object.keys(r.statusCounts);
   return report("Order status and exceptions", [
-    bars("status_chart", "Order status", labels, labels.map((l) => r.statusCounts[l])),
+    donut("status_chart", "Order status breakdown", labels, labels.map((l) => r.statusCounts[l])),
     table(
       "exceptions",
       "Exceptions requiring attention",
