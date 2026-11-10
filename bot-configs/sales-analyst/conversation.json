@@ -26,6 +26,12 @@
       "message": "Some data checks failed, so this review may be incomplete. Please check the orders in WooCommerce before relying on these numbers.",
       "options": [
         {
+          "label": "Retry",
+          "value": "retry",
+          "actionId": "validation_retry",
+          "next": "retry_validation"
+        },
+        {
           "label": "Continue with partial data",
           "value": "partial",
           "actionId": "validation_partial",
@@ -38,6 +44,11 @@
           "next": "stopped"
         }
       ]
+    },
+    "retry_validation": {
+      "type": "api",
+      "action": "retry_validation",
+      "next": "check_validation"
     },
     "stopped": {
       "type": "message",
@@ -140,10 +151,27 @@
         }
       ]
     },
+    "s07m": {
+      "type": "choice",
+      "message": "Next, here is your monthly order performance for this year.",
+      "options": [
+        {
+          "label": "Next",
+          "value": "next",
+          "actionId": "next_s07m",
+          "next": "s07m_monthly"
+        }
+      ]
+    },
+    "s07m_monthly": {
+      "type": "api",
+      "action": "monthly_orders",
+      "next": "s08"
+    },
     "s07_products": {
       "type": "api",
       "action": "top_products",
-      "next": "s08"
+      "next": "s07m"
     },
     "s08": {
       "type": "choice",

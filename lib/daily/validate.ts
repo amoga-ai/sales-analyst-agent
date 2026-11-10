@@ -12,6 +12,7 @@ export function validateOrders(orders: WooOrder[]) {
     },
     { label: "Order totals", passed: orders.every((o) => o.total !== "") },
     { label: "Currency present", passed: orders.every((o) => !!o.currency) },
+    // { label: "Currency present", passed: false },
     {
       label: "Line items on paid orders",
       passed: orders

@@ -42,13 +42,20 @@ export const catalog = defineCatalog(schema, {
       }),
       description: "A horizontal bar chart with one bar per label",
     },
-        DonutChart: {
+    DonutChart: {
       props: z.object({
         title: z.string(),
         labels: z.array(z.string()),
         values: z.array(z.number()),
       }),
       description: "A donut chart with a legend, one slice per label",
+    },
+    ScatterChart: {
+      props: z.object({
+        title: z.string(),
+        points: z.array(z.object({ x: z.number(), y: z.number() })),
+      }),
+      description: "A scatter plot with one dot per point",
     },
   },
   actions: {},

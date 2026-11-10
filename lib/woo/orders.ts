@@ -3,6 +3,7 @@ export type WooLineItem = {
   name: string;
   quantity: number;
   total: string;
+  sku: string;
 };
 
 export type WooOrder = {

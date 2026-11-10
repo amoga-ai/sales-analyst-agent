@@ -54,9 +54,8 @@ export const { registry } = defineRegistry(catalog, {
                 {props.columns.map((c, i) => (
                   <th
                     key={i}
-                    className={`px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 ${
-                      i > 0 ? "text-right" : "text-left"
-                    }`}
+                    className={`px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-500 ${i > 0 ? "text-right" : "text-left"
+                      }`}
                   >
                     {c}
                   </th>
@@ -69,9 +68,8 @@ export const { registry } = defineRegistry(catalog, {
                   {row.map((cell, i) => (
                     <td
                       key={i}
-                      className={`px-4 py-3 capitalize tabular-nums ${
-                        i > 0 ? "text-right" : ""
-                      }`}
+                      className={`px-4 py-3 capitalize tabular-nums ${i > 0 ? "text-right" : ""
+                        }`}
                     >
                       {cell}
                     </td>
@@ -111,7 +109,7 @@ export const { registry } = defineRegistry(catalog, {
         </div>
       );
     },
-        DonutChart: ({ props }) => {
+    DonutChart: ({ props }) => {
       const total = props.values.reduce((s, v) => s + v, 0) || 1;
       const colors = ["#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#06b6d4", "#a855f7", "#64748b"];
       let offset = 0;
@@ -155,6 +153,88 @@ export const { registry } = defineRegistry(catalog, {
               ))}
             </ul>
           </div>
+        </div>
+      );
+    },
+        ScatterChart: ({ props }) => {
+      const pts = props.points;
+      const title = props.title ? (
+        <h4 className="mb-3 text-sm font-semibold">{props.title}</h4>
+      ) : null;
+      if (!pts.length) {
+        return (
+          <div>
+            {title}
+            <p className="text-sm text-zinc-500">No data to chart.</p>
+          </div>
+        );
+      }
+      const maxX = Math.max(1, ...pts.map((p) => p.x));
+      const maxY = Math.max(1, ...pts.map((p) => p.y));
+      const W = 560;
+      const H = 280;
+      const L = 56;
+      const R = 16;
+      const T = 16;
+      const B = 40;
+      const sx = (x: number) => L + (x / maxX) * (W - L - R);
+      const sy = (y: number) => H - B - (y / maxY) * (H - T - B);
+      const ticks = [0, 0.5, 1];
+      return (
+        <div>
+          {title}
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+            {ticks.map((t) => (
+              <g key={`y${t}`}>
+                <line
+                  x1={L}
+                  x2={W - R}
+                  y1={H - B - t * (H - T - B)}
+                  y2={H - B - t * (H - T - B)}
+                  stroke="#f4f4f5"
+                />
+                <text
+                  x={L - 8}
+                  y={H - B - t * (H - T - B) + 4}
+                  textAnchor="end"
+                  fontSize="11"
+                  fill="#71717a"
+                >
+                  {Math.round(t * maxY).toLocaleString("en-MY")}
+                </text>
+              </g>
+            ))}
+            {ticks.map((t) => (
+              <text
+                key={`x${t}`}
+                x={L + t * (W - L - R)}
+                y={H - B + 16}
+                textAnchor="middle"
+                fontSize="11"
+                fill="#71717a"
+              >
+                {Math.round(t * maxX)}
+              </text>
+            ))}
+            <line x1={L} y1={H - B} x2={W - R} y2={H - B} stroke="#d4d4d8" />
+            <line x1={L} y1={T} x2={L} y2={H - B} stroke="#d4d4d8" />
+            {pts.map((p, i) => (
+              <circle
+                key={i}
+                cx={sx(p.x)}
+                cy={sy(p.y)}
+                r="5"
+                fill="#6366f1"
+                fillOpacity="0.75"
+              />
+            ))}
+            <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" fontSize="11" fill="#71717a">
+              Items per order
+            </text>
+            <text x={L} y={10} fontSize="11" fill="#71717a">
+              Order total (MYR)
+            </text>
+          </svg>
         </div>
       );
     },
