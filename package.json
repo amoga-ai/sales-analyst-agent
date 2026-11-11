@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/react": "4.0.173",
     "@ai-sdk/workflow": "^2.0.98",
     "@json-render/core": "^0.22.0",
     "@json-render/react": "^0.22.0",
+    "ai": "7.0.169",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",

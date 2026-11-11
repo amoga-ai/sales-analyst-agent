@@ -171,7 +171,7 @@ export function statusReport(r: Review, orders: WooOrder[]) {
             "exceptions",
             "Exceptions requiring attention",
             ["Issue", "Orders", "Priority"],
-            r.exceptions.map((e) => [e.issue, e.orders, e.priority])
+            r.exceptions.length ? r.exceptions.map((e) => [e.issue, e.orders, e.priority]) : [["No exceptions found", "-", "-"]]
         ),
     ]);
 }

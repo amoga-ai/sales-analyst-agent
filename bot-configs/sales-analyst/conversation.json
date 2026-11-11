@@ -246,8 +246,7 @@
     },
     "s12": {
       "type": "choice",
-      "message": "Thank you. Your daily WooCommerce performance report has been approved and published. What would you like to investigate?",
-      "options": [
+      "message": "Thank you. Your daily WooCommerce performance report has been approved. Saving and publishing are not connected yet. What would you like to investigate?", "options": [
         {
           "label": "Show all failed orders",
           "value": "failed_orders",
