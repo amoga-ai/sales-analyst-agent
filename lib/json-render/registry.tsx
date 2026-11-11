@@ -156,7 +156,7 @@ export const { registry } = defineRegistry(catalog, {
         </div>
       );
     },
-        ScatterChart: ({ props }) => {
+    ScatterChart: ({ props }) => {
       const pts = props.points;
       const title = props.title ? (
         <h4 className="mb-3 text-sm font-semibold">{props.title}</h4>
@@ -236,6 +236,25 @@ export const { registry } = defineRegistry(catalog, {
             </text>
           </svg>
         </div>
+      );
+    },
+    StoryCard: ({ props }) => {
+      const paragraphs = props.text.split(/\n+/).filter((line) => line.trim());
+      return (
+        <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
+          <div className="p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              AI summary
+            </p>
+            <h4 className="mt-1 text-xl font-semibold tracking-tight">{props.title}</h4>
+            <div className="mt-4 space-y-4 text-[15px] leading-7 text-zinc-700 dark:text-zinc-300">
+              {paragraphs.map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          </div>
+        </section>
       );
     },
   },

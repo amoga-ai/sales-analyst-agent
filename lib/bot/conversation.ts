@@ -5,6 +5,7 @@ export type Option = {
   value: string;
   actionId?: string;
   next: string;
+  loading?: string;
 };
 
 export type FlowNode =
@@ -18,7 +19,8 @@ export type FlowNode =
   | { type: "approval"; message: string; options: Option[] }
   | { type: "api"; action: string; next: string }
   | { type: "message"; message: string }
-  | { type: "rule"; field: string; op: string; value: string | number; then: string; else: string };
+  | { type: "rule"; field: string; op: string; value: string | number; then: string; else: string }
+  | { type: "ai"; prompt: string; source: string; output: string; next: string };
 
 export const startNode: string = flow.startNode;
 export const nodes = flow.nodes as unknown as Record<string, FlowNode>;

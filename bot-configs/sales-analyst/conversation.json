@@ -151,6 +151,11 @@
         }
       ]
     },
+    "s07_products": {
+      "type": "api",
+      "action": "top_products",
+      "next": "s07m"
+    },
     "s07m": {
       "type": "choice",
       "message": "Next, here is your monthly order performance for this year.",
@@ -159,19 +164,22 @@
           "label": "Next",
           "value": "next",
           "actionId": "next_s07m",
-          "next": "s07m_monthly"
+          "next": "s07m_monthly",
+          "loading": "Preparing the monthly summary and story…"
         }
       ]
     },
     "s07m_monthly": {
       "type": "api",
       "action": "monthly_orders",
-      "next": "s08"
+      "next": "s07_story"
     },
-    "s07_products": {
-      "type": "api",
-      "action": "top_products",
-      "next": "s07m"
+    "s07_story": {
+      "type": "ai",
+      "prompt": "Write a short order trend narrative. Name the top and poor performers.",
+      "source": "top_orders",
+      "output": "narrative",
+      "next": "s08"
     },
     "s08": {
       "type": "choice",

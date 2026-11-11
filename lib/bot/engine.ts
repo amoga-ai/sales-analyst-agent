@@ -3,11 +3,12 @@ import type { Msg, Session } from "./session-store";
 
 export type Ui =
   | { type: "text" }
-  | { type: "choice"; options: { label: string; value: string }[] };
+  | { type: "choice"; options: { label: string; value: string, loading?: string }[] };
 
 export type Reply = {
   messages: Msg[];
   runAction?: string; // set when the flow reached an api step
+  runAi?: { prompt: string; source: string; output: string }; // set when the flow reached an ai step
 };
 
 const messageOf = (node: FlowNode) => ("message" in node ? node.message : "");
@@ -21,7 +22,11 @@ export function uiFor(session: Session): Ui {
   if (node.type === "choice" || node.type === "approval") {
     return {
       type: "choice",
-      options: node.options.map((o) => ({ label: o.label, value: o.value })),
+      options: node.options.map((o) => ({
+        label: o.label,
+        value: o.value,
+        loading: o.loading,
+      })),
     };
   }
   return { type: "text" };
@@ -92,10 +97,16 @@ export function handle(
 }
 
 // Called by the route after it has run an api step successfully.
-export function continueAfterApi(session: Session): Msg[] {
+export function continueAfterApi(session: Session): Reply {
   const node = nodes[session.nodeId];
-  if (node.type !== "api") return [];
-  return enter(session, node.next, []).messages;
+  if (node.type !== "api") return { messages: [] };
+  return enter(session, node.next, []);
+}
+
+export function continueAfterAi(session: Session): Reply {
+  const node = nodes[session.nodeId];
+  if (node.type !== "ai") return { messages: [] };
+  return enter(session, node.next, []);
 }
 
 function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
@@ -114,6 +125,12 @@ function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
 
   if (next.type === "api") {
     return { messages: prefix, runAction: next.action };
+  }
+  if (next.type === "ai") {
+    return {
+      messages: prefix,
+      runAi: { prompt: next.prompt, source: next.source, output: next.output },
+    };
   }
 
   if (next.type === "message") {

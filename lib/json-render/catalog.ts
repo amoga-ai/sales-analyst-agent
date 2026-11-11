@@ -57,6 +57,13 @@ export const catalog = defineCatalog(schema, {
       }),
       description: "A scatter plot with one dot per point",
     },
+      StoryCard: {
+      props: z.object({
+        title: z.string(),
+        text: z.string(),
+      }),
+      description: "A story card with a title and paragraphs of narrative text",
+    },
   },
   actions: {},
 });

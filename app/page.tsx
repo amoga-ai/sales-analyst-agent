@@ -9,7 +9,7 @@ import UserBar from "@/components/UserBar";
 type Msg = { role: "user" | "assistant"; text: string } | { spec: any };
 type Ui =
   | { type: "text" }
-  | { type: "choice"; options: { label: string; value: string }[] };
+  | { type: "choice"; options: { label: string; value: string; loading?: string }[] };
 
 export default function Page() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -17,6 +17,7 @@ export default function Page() {
   const [ui, setUi] = useState<Ui>({ type: "text" });
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loadingText, setLoadingText] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,9 +34,10 @@ export default function Page() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  async function send(body: { text?: string; optionValue?: string }) {
+  async function send(body: { text?: string; optionValue?: string }, loading?: string) {
     if (!sessionId || busy) return;
     setBusy(true);
+    setLoadingText(loading ?? null);
     try {
       const res = await fetch("/api/bot-action", {
         method: "POST",
@@ -53,6 +55,7 @@ export default function Page() {
       ]);
     } finally {
       setBusy(false);
+      setLoadingText(null);
     }
   }
 
@@ -127,7 +130,7 @@ export default function Page() {
               {ui.options.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => send({ optionValue: option.value })}
+                  onClick={() => send({ optionValue: option.value }, option.loading)}
                   className="rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm hover:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
                 >
                   {option.label}
@@ -136,7 +139,7 @@ export default function Page() {
             </div>
           )}
 
-          {busy && <p className="text-xs text-zinc-500">Working…</p>}
+          {busy && <p className="text-xs text-zinc-500">{loadingText ?? "Working…"}</p>}
           <div ref={bottomRef} />
         </div>
       </main>
