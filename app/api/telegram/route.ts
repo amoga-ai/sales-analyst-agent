@@ -9,6 +9,7 @@ const chats = (g.__telegramChats ??= new Map<number, string>());
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? "";
 const SECRET = process.env.TELEGRAM_WEBHOOK_SECRET ?? "";
+const WEB_URL = "https://cmcl9xvxqwoxu81zkjwpxm9g.72.60.234.126.sslip.io";
 
 // Calls a Telegram Bot API method.
 async function telegram(method: string, payload: unknown) {
@@ -25,15 +26,39 @@ function specToText(spec: any): string {
   const lines: string[] = [];
   for (const el of Object.values<any>(spec?.elements ?? {})) {
     const p = el.props ?? {};
-    if (p.title) lines.push(p.title);
-    if (p.text) lines.push(p.text);
-    if (p.label && p.value !== undefined) lines.push(`${p.label}: ${p.value}`);
-    if (Array.isArray(p.headers) && Array.isArray(p.rows)) {
-      lines.push(p.headers.join(" | "));
-      for (const row of p.rows) lines.push(row.join(" | "));
+    switch (el.type) {
+      case "Card":
+        if (p.title) lines.push(p.title);
+        break;
+      case "Text":
+        if (p.content) lines.push(p.content);
+        break;
+      case "MetricCard":
+        lines.push(`${p.label}: ${p.value}`);
+        break;
+      case "Table":
+        if (p.title) lines.push(`\n${p.title}`);
+        lines.push((p.columns ?? []).join(" | "));
+        for (const row of p.rows ?? []) lines.push(row.join(" | "));
+        break;
+      case "BarChart":
+      case "DonutChart":
+        if (p.title) lines.push(`\n${p.title}`);
+        (p.labels ?? []).forEach((label: string, i: number) => {
+          lines.push(`${label}: ${p.values?.[i] ?? ""}`);
+        });
+        break;
+      case "ScatterChart":
+        if (p.title) lines.push(`\n${p.title}`);
+        lines.push(`(chart with ${(p.points ?? []).length} points: see ${WEB_URL})`);
+        break;
+      case "StoryCard":
+        if (p.title) lines.push(`\n${p.title}`);
+        if (p.text) lines.push(p.text);
+        break;
     }
   }
-  return lines.join("\n") || "(this section is shown in the web app)";
+  return lines.join("\n") || `(this section is shown in the web app: ${WEB_URL})`;
 }
 
 export async function POST(req: Request) {
@@ -42,7 +67,8 @@ export async function POST(req: Request) {
   }
 
   const update = await req.json();
-  const chatId: number | undefined = update.message?.chat?.id ?? update.callback_query?.message?.chat?.id;
+  const chatId: number | undefined =
+    update.message?.chat?.id ?? update.callback_query?.message?.chat?.id;
   if (!chatId) return Response.json({ ok: true });
 
   const text: string = update.message?.text?.trim() ?? "";
@@ -60,9 +86,23 @@ export async function POST(req: Request) {
     }
 
     const before = isNew ? 0 : session!.messages.length;
+    const prevUi: any = uiFor(session!);
+
     if (!isNew && (text || tapValue)) {
       const reply = handle(session!, tapValue ? { optionValue: tapValue } : { text });
       session!.messages.push(...reply.messages);
+
+      // Tell the user the bot is busy before a slow API or AI step runs.
+      if (reply.runAction || reply.runAi) {
+        const loading = tapValue
+          ? prevUi.options?.find((o: any) => o.value === tapValue)?.loading
+          : undefined;
+        await telegram("sendMessage", {
+          chat_id: chatId,
+          text: loading ?? "Working on it… this can take up to a minute.",
+        });
+      }
+
       await followSteps(session!, reply);
     }
 
