@@ -1,8 +1,7 @@
 // Slack endpoint: verifies Slack requests, runs messages and button clicks through the bot flow, and replies in the chat.
 import { createHmac, timingSafeEqual } from "crypto";
 import { after } from "next/server";
-import { startNode } from "@/lib/bot/conversation";
-import { handle, openingMessages, uiFor } from "@/lib/bot/engine";
+import { DEFAULT_FLOW, startOf } from "@/lib/bot/conversation";import { handle, openingMessages, uiFor } from "@/lib/bot/engine";
 import { createSession, getSession } from "@/lib/bot/session-store";
 import { followSteps } from "@/lib/bot/run-steps";
 import { specToText } from "@/lib/bot/spec-to-text";
@@ -42,7 +41,8 @@ async function runTurn(channel: string, userId: string, text: string | undefined
   let session = chats.has(userId) ? getSession(chats.get(userId)!) : undefined;
   const isNew = !session || text?.toLowerCase() === "start";
   if (isNew) {
-    session = createSession(startNode, openingMessages());
+    session = createSession(DEFAULT_FLOW, startOf(DEFAULT_FLOW), []);
+    session.messages.push(...openingMessages(session));
     chats.set(userId, session.id);
   }
 

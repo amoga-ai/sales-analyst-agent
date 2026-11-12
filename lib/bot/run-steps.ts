@@ -1,4 +1,4 @@
-// Runs flow steps (API actions and AI steps) until the flow needs the user's answer.
+// lib/bot/run-steps.ts: Runs flow steps (API actions and AI steps) until the flow needs the user's answer. Logs the real error before showing a generic message.
 import { runDailyAction } from "@/lib/daily/actions";
 import { runAiStep } from "@/lib/ai/step";
 import type { Session } from "@/lib/bot/session-store";
@@ -27,13 +27,15 @@ export async function followSteps(session: Session, first: Reply) {
         reply = continueAfterAi(session);
       }
       session.messages.push(...reply.messages);
-    } catch {
+    } catch (err) {
+      // The real reason is printed in the terminal. The chat only shows the generic message.
+      console.error("[bot] step failed:", err);
       session.messages.push({
         role: "assistant",
         text: "Sorry, this step could not be completed. Please check the store connection and try again.",
       });
       reset(session);
-      session.messages.push(...openingMessages());
+      session.messages.push(...openingMessages(session));
       return;
     }
   }

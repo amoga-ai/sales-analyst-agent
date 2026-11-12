@@ -4,8 +4,7 @@
 import agents from "@/lib/agents/agents.json";
 
 // components/AgentSelector.tsx: Agent type now includes the model name (null when the agent uses no AI model).
-export type Agent = { id: string; name: string; transport: string; model: string | null; description: string };
-export default function AgentSelector({
+export type Agent = { id: string; name: string; type: string; status: "ready" | "planned"; transport: string; flow?: string; url: string; model: string | null; welcome: string; description: string };export default function AgentSelector({
   value,
   onChange,
   disabled,

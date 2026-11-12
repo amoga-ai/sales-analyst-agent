@@ -1,4 +1,4 @@
-// components/ChatShell.tsx: Shared chat layout. The header holds the title, the agent dropdown, and the account menu. Also includes the message bubble and the input bar.
+// components/ChatShell.tsx: Shared chat layout. Header with title and account menu, message column, and input footer with the menus under the input.
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
@@ -7,14 +7,12 @@ export default function ChatShell({
   topBar,
   title,
   subtitle,
-  agentSelector,
   footer,
   children,
 }: {
   topBar?: ReactNode;
   title: string;
   subtitle?: string;
-  agentSelector: ReactNode;
   footer: ReactNode;
   children: ReactNode;
 }) {
@@ -25,10 +23,7 @@ export default function ChatShell({
           <h1 className="truncate text-base font-semibold">{title}</h1>
           {subtitle && <p className="truncate text-xs text-zinc-500">{subtitle}</p>}
         </div>
-        <div className="flex items-center gap-3">
-          {agentSelector}
-          {topBar}
-        </div>
+        <div className="flex items-center gap-3">{topBar}</div>
       </header>
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">{children}</div>
@@ -58,7 +53,7 @@ export function Bubble({ role, children }: { role: "user" | "assistant"; childre
   );
 }
 
-// The input bar at the bottom. Optional chips sit above it and an optional hint (the model name) sits below it.
+// The input bar. Optional chips sit above it, and the toolbar (model and agent menus) sits below it.
 export function ChatInput({
   value,
   onChange,
@@ -66,7 +61,7 @@ export function ChatInput({
   disabled,
   placeholder,
   chips,
-  hint,
+  toolbar,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -74,10 +69,10 @@ export function ChatInput({
   disabled?: boolean;
   placeholder?: string;
   chips?: ReactNode;
-  hint?: string;
+  toolbar?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {chips}
       <form
         onSubmit={onSubmit}
@@ -98,7 +93,7 @@ export function ChatInput({
           Send
         </button>
       </form>
-      {hint && <p className="px-2 text-xs text-zinc-500">{hint}</p>}
+      {toolbar}
     </div>
   );
 }

@@ -1,16 +1,37 @@
 [
   {
     "id": "sales-review-workflow",
-    "name": "Sales review workflow",
+    "name": "Workflow with AI (sales review)",
+    "type": "fixed-ai",
+    "status": "ready",
     "transport": "bot",
+    "flow": "sales-review-workflow",
+    "url": "",
     "model": null,
-    "description": "Fixed steps in the sales app. No AI model."
+    "welcome": "Good morning! I'm your sales review workflow. Start a daily review when you're ready.",
+    "description": "Fixed steps, with an AI step that writes part of the reply."
+  },
+  {
+    "id": "pure-workflow",
+    "name": "Pure workflow (no AI)",
+    "type": "fixed",
+    "status": "ready",
+    "transport": "bot",
+    "flow": "pure-workflow",
+    "url": "",
+    "model": null,
+    "welcome": "Good morning! I'm the pure sales review workflow. Start a daily review when you're ready.",
+    "description": "Fixed steps only, with no AI step."
   },
   {
     "id": "sales-review-eve",
-    "name": "Sales review - Eve",
+    "name": "Eve agent (AI with tools)",
+    "type": "agent",
+    "status": "ready",
     "transport": "eve",
+    "url": "https://mfjoazbxo9wcfpvgljvns8ma.72.60.234.126.sslip.io",
     "model": "qwen/qwen3.6-flash",
-    "description": "Eve agent. Uses its one configured model."
+    "welcome": "Hi, I'm the Eve sales review agent. Ask me to run a daily review, for example: Run the daily review for 2026-06-29.",
+    "description": "Eve agent. An AI model chooses the tools."
   }
 ]

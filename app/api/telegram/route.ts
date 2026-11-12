@@ -1,6 +1,5 @@
 // Telegram webhook: receives messages and button taps, runs them through the bot flow, and replies in the chat.
-import { startNode } from "@/lib/bot/conversation";
-import { handle, openingMessages, uiFor } from "@/lib/bot/engine";
+import { DEFAULT_FLOW, startOf } from "@/lib/bot/conversation";import { handle, openingMessages, uiFor } from "@/lib/bot/engine";
 import { createSession, getSession } from "@/lib/bot/session-store";
 import { followSteps } from "@/lib/bot/run-steps";
 
@@ -86,7 +85,8 @@ export async function POST(req: Request) {
         let session = chats.has(chatId) ? getSession(chats.get(chatId)!) : undefined;
         const isNew = !session || text === "/start";
         if (isNew) {
-            session = createSession(startNode, openingMessages());
+            session = createSession(DEFAULT_FLOW, startOf(DEFAULT_FLOW), []);
+            session.messages.push(...openingMessages(session));
             chats.set(chatId, session.id);
         }
 

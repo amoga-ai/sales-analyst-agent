@@ -1,0 +1,13 @@
+{
+  "botId": "sales-analyst",
+  "agentUuid": "5b54c9db-9c3c-46d1-9d57-7f8ff276c9ee",
+  "name": "Sales Analyst",
+  "version": "1.0.0",
+  "status": "published",
+  "description": "Sales performance review assistant",
+  "welcomeMessage": "Hello! I can help you review your sales performance.",
+  "configuration": {
+    "conversation": "conversation.json",
+    "ui": "ui.json"
+  }
+}

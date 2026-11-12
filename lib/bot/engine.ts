@@ -1,9 +1,10 @@
-import { nodes, startNode, fill, type FlowNode } from "./conversation";
+// lib/bot/engine.ts: Moves a session through its flow. Each session uses the flow it was created with.
+import { fill, flowFor, nodesOf, startOf, type FlowNode } from "./conversation";
 import type { Msg, Session } from "./session-store";
 
 export type Ui =
   | { type: "text" }
-  | { type: "choice"; options: { label: string; value: string, loading?: string }[] };
+  | { type: "choice"; options: { label: string; value: string; loading?: string }[] };
 
 export type Reply = {
   messages: Msg[];
@@ -13,12 +14,18 @@ export type Reply = {
 
 const messageOf = (node: FlowNode) => ("message" in node ? node.message : "");
 
-export function openingMessages(): Msg[] {
-  return [{ role: "assistant", text: fill(messageOf(nodes[startNode]), {}) }];
+function nodesFor(session: Session) {
+  return nodesOf(flowFor(session.flow));
+}
+
+export function openingMessages(session: Session): Msg[] {
+  const flow = flowFor(session.flow);
+  const node = nodesOf(flow)[startOf(flow)];
+  return [{ role: "assistant", text: fill(messageOf(node), {}) }];
 }
 
 export function uiFor(session: Session): Ui {
-  const node = nodes[session.nodeId];
+  const node = nodesFor(session)[session.nodeId];
   if (node.type === "choice" || node.type === "approval") {
     return {
       type: "choice",
@@ -57,6 +64,7 @@ export function handle(
   session: Session,
   input: { text?: string; optionValue?: string }
 ): Reply {
+  const nodes = nodesFor(session);
   const node = nodes[session.nodeId];
   const text = (input.text ?? "").trim();
 
@@ -98,18 +106,19 @@ export function handle(
 
 // Called by the route after it has run an api step successfully.
 export function continueAfterApi(session: Session): Reply {
-  const node = nodes[session.nodeId];
+  const node = nodesFor(session)[session.nodeId];
   if (node.type !== "api") return { messages: [] };
   return enter(session, node.next, []);
 }
 
 export function continueAfterAi(session: Session): Reply {
-  const node = nodes[session.nodeId];
+  const node = nodesFor(session)[session.nodeId];
   if (node.type !== "ai") return { messages: [] };
   return enter(session, node.next, []);
 }
 
 function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
+  const nodes = nodesFor(session);
   const next = nodes[nextId];
   if (!next) {
     // Reset before throwing so the session never points at a missing step,
@@ -138,7 +147,7 @@ function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
     const text = fill(next.message, session.vars);
     reset(session);
     return {
-      messages: [...prefix, { role: "assistant", text }, ...openingMessages()],
+      messages: [...prefix, { role: "assistant", text }, ...openingMessages(session)],
     };
   }
 
@@ -148,6 +157,6 @@ function enter(session: Session, nextId: string, prefix: Msg[]): Reply {
 }
 
 export function reset(session: Session) {
-  session.nodeId = startNode;
+  session.nodeId = startOf(flowFor(session.flow));
   session.vars = {};
 }
