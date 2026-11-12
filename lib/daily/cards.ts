@@ -207,12 +207,13 @@ export function productsReport(r: Review, orders: WooOrder[]) {
 
 const LABELS = { positive: "Positive", attention: "Attention", opportunity: "Opportunity" };
 
+// lib/daily/cards.ts: Findings card. The table title is "Today" so it does not repeat the card title.
 export function findingsReport(items: { group: keyof typeof GROUPS; text: string }[]) {
     return report("Findings", [
         items.length
             ? table(
                 "findings",
-                "Findings",
+                "Today",
                 ["Group", "Finding"],
                 items.map((i) => [GROUPS[i.group], i.text])
             )
@@ -220,12 +221,13 @@ export function findingsReport(items: { group: keyof typeof GROUPS; text: string
     ]);
 }
 
+// lib/daily/cards.ts: Recommended actions card. The table title is "Actions for today" so it does not repeat the card title.
 export function recommendationsReport(r: Review) {
     return report("Recommended actions", [
         r.recommendations.length
             ? table(
                 "recs",
-                "Recommended actions",
+                "Actions for today",
                 ["Priority", "Action", "Reason", "Evidence", "Expected outcome", "Owner", "Human action"],
                 r.recommendations.map((x) => [
                     x.priority,

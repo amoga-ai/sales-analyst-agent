@@ -9,7 +9,7 @@ export async function askModel(system: string, user: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL ?? "qwen/qwen3.6-flash",
+      model: process.env.OPENROUTER_MODEL ?? "",
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
