@@ -29,7 +29,7 @@ export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; 
                     onChange={setInput}
                     onSubmit={submit}
                     disabled={busy}
-                    placeholder="Type a date like 2026-06-29, or just say run"
+                    placeholder="Type a date like 2026-06-29"
                     toolbar={toolbar}
                 />
             }

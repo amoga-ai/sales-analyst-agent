@@ -1,17 +1,22 @@
-// Chat transport for Eve No AI: starts the Eve workflow, waits for it, and sends the summary back as a chat message. No AI.
+// Chat transport for Eve No AI: accepts only a real YYYY-MM-DD date, starts the Eve workflow, and sends the summary back. No AI.
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
 
-const DEFAULT_DATE = "2026-06-29";
+// Returns the date in the message if it is a real calendar date, otherwise null.
+function parseDate(text: string): string | null {
+  const match = text.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+  if (!match) return null;
+  const d = new Date(`${match}T00:00:00Z`);
+  return d.toISOString().slice(0, 10) === match ? match : null;
+}
 
 export class EveNoAiTransport implements ChatTransport<UIMessage> {
   async sendMessages({
     messages,
     abortSignal,
   }: Parameters<ChatTransport<UIMessage>["sendMessages"]>[0]) {
-    // Use a YYYY-MM-DD date in the message if there is one, otherwise the default date.
     const last = messages[messages.length - 1];
     const text = last ? last.parts.map((p) => (p.type === "text" ? p.text : "")).join(" ") : "";
-    const date = text.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? DEFAULT_DATE;
+    const date = parseDate(text);
 
     return new ReadableStream<UIMessageChunk>({
       async start(controller) {
@@ -24,6 +29,15 @@ export class EveNoAiTransport implements ChatTransport<UIMessage> {
         };
 
         controller.enqueue({ type: "start" });
+
+        // No valid date: ask for one and do not start a run.
+        if (date === null) {
+          say("Please type a real date, like 2026-06-29.");
+          controller.enqueue({ type: "finish" });
+          controller.close();
+          return;
+        }
+
         say(`Running the sales review for ${date}…`);
 
         try {
