@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* app/globals.css: Show a pointer on clickable controls, and a not-allowed cursor on disabled ones. */
+button:not(:disabled),
+select:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="menuitem"] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}

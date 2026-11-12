@@ -1,0 +1,16 @@
+[
+  {
+    "id": "sales-review-workflow",
+    "name": "Sales review workflow",
+    "transport": "bot",
+    "model": null,
+    "description": "Fixed steps in the sales app. No AI model."
+  },
+  {
+    "id": "sales-review-eve",
+    "name": "Sales review - Eve",
+    "transport": "eve",
+    "model": "qwen/qwen3.6-flash",
+    "description": "Eve agent. Uses its one configured model."
+  }
+]

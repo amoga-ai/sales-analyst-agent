@@ -4,8 +4,8 @@
 import { useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { JSONUIProvider, Renderer } from "@json-render/react";
-import { registry } from "@/lib/json-render/registry";
-import { EveChatTransport } from "@/lib/chat/eve-transport";
+import { registry } from "../../lib/json-render/registry";
+import { EveChatTransport } from "../../lib/chat/eve-transport";
 
 export default function EvePage() {
   const [transport] = useState(() => new EveChatTransport());
