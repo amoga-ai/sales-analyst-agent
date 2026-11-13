@@ -2,6 +2,8 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChatShell({
   topBar,
@@ -38,16 +40,18 @@ export default function ChatShell({
 // One chat message. User messages are dark, assistant messages are light gray.
 export function Bubble({ role, children }: { role: "user" | "assistant"; children: ReactNode }) {
   const mine = role === "user";
+  // Assistant text is rendered as markdown, so tables and bold text display properly.
+  const markdown = !mine && typeof children === "string";
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           mine
-            ? "bg-indigo-600 text-white"
-            : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+            ? "whitespace-pre-wrap bg-indigo-600 text-white"
+            : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 [&_table]:my-2 [&_td]:border [&_td]:px-2 [&_td]:py-1 [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_p]:my-2"
         }`}
       >
-        {children}
+        {markdown ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown> : children}
       </div>
     </div>
   );

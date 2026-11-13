@@ -9,6 +9,7 @@ import ChatToolbar from "@/components/ChatToolbar";
 import WorkflowChat from "@/components/WorkflowChat";
 import EveChat from "@/components/EveChat";
 import EveNoAiSalesReview from "@/components/EveNoAiChat";
+import EveAnalystChat from "@/components/EveAnalystChat";
 
 export default function Page() {
   const list = agents as Agent[];
@@ -27,8 +28,10 @@ export default function Page() {
   );
 
   // The key starts a fresh chat when the agent changes, so messages from different agents don't mix.
-  return agent.transport === "eve" ? (
-    <EveChat key={agent.id} toolbar={toolbar} welcome={agent.welcome} />
+  return agent.transport === "eve-analyst" ? (
+     <EveAnalystChat key={agent.id} toolbar={toolbar} welcome={agent.welcome} />
+   ) : agent.transport === "eve" ? (
+     <EveChat key={agent.id} toolbar={toolbar} welcome={agent.welcome} />
   ) : agent.transport === "eve-workflow" ? (
     <EveNoAiSalesReview key={agent.id} toolbar={toolbar} welcome={agent.welcome} />
   ) : (

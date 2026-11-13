@@ -45,5 +45,16 @@
         "model": null,
         "welcome": "Pick a date and run the daily sales review. No AI is used.",
         "description": "Eve workflow with code steps. No model calls."
+    },
+    {
+        "id": "eve-analyst",
+        "name": "Eve Data Analyst",
+        "type": "agent",
+        "status": "ready",
+        "transport": "eve-analyst",
+        "url": "",
+        "model": "qwen/qwen3.6-flash",
+        "welcome": "Hi, I'm the Eve data analyst. Ask me a question about the business, for example: How many paying customers do we have today?",
+        "description": "Eve data analyst. Answers business questions from the warehouse."
     }
 ]
