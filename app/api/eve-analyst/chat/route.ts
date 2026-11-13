@@ -1,12 +1,15 @@
-// Forwards chat questions to the analyst, or approval answers to its answer route.
+// Forwards chat questions and approval answers to the analyst, with Basic credentials.
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  // Reads the analyst address set in .env.local.
+  // Reads the analyst address and credentials from the environment.
   const base = process.env.ANALYST_URL;
-  if (!base) {
-    return Response.json({ error: "ANALYST_URL is not set" }, { status: 500 });
+  const user = process.env.ANALYST_USER;
+  const password = process.env.ANALYST_PASSWORD;
+  if (!base || !user || !password) {
+    return Response.json({ error: "ANALYST_URL, ANALYST_USER, or ANALYST_PASSWORD is not set" }, { status: 500 });
   }
+  const authHeader = `Basic ${Buffer.from(`${user}:${password}`).toString("base64")}`;
 
   // Reads the chat body sent by the browser.
   const body = await request.json();
@@ -19,7 +22,7 @@ export async function POST(request: Request) {
     // An Approve or Cancel click: answer the pending approval and stream the result.
     upstream = await fetch(`${base}/chat-test/${id}/answer`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
       body: JSON.stringify({ requestId: approval.requestId, optionId: approval.optionId }),
       cache: "no-store",
     });
@@ -35,7 +38,7 @@ export async function POST(request: Request) {
 
     upstream = await fetch(`${base}/chat-test/${id}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
       body: JSON.stringify({ message: text }),
       cache: "no-store",
     });
