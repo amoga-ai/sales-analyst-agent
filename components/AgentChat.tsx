@@ -55,6 +55,19 @@ function ApprovalCard({
     );
 }
 
+function reportRows(output: unknown): unknown {
+    if (Array.isArray(output)) return output;
+    if (typeof output === "string") {
+        try { return JSON.parse(output); } catch { return output; }
+    }
+    const content = (output as { content?: { type: string; text?: string }[] })?.content;
+    const text = content?.find((c) => c.type === "text")?.text;
+    if (text) {
+        try { return JSON.parse(text); } catch { return output; }
+    }
+    return output;
+}
+
 export default function AgentChat({
     agentId,
     title,
@@ -145,6 +158,17 @@ export default function AgentChat({
                                         disabled={busy || Boolean(answers[data.requestId])}
                                         onAnswer={answer}
                                     />
+                                </div>
+                            );
+                        }
+                        if (part.type === "dynamic-tool" && (part as any).state === "output-available") {
+                            const name = (part as any).toolName as string;
+                            const tool = name.startsWith("woocommerce__") ? name : `woocommerce__${name}`;
+                            return (
+                                <div key={i} className="w-full">
+                                    <JSONUIProvider registry={registry}>
+                                        <Renderer spec={reportSpec(tool, reportRows((part as any).output))} registry={registry} />
+                                    </JSONUIProvider>
                                 </div>
                             );
                         }

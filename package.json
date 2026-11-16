@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/mcp": "2.0.99",
     "@ai-sdk/react": "4.0.173",
     "@ai-sdk/workflow": "^2.0.98",
     "@json-render/core": "^0.22.0",
     "@json-render/react": "^0.22.0",
+    "@openrouter/ai-sdk-provider": "3.1.0",
     "ai": "7.0.169",
     "next": "16.4.5",
     "react": "19.3.0",

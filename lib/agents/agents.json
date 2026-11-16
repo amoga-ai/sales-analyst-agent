@@ -59,13 +59,24 @@
     },
     {
         "id": "woo-analyst",
-        "name": "WooCommerce Analyst",
+        "name": "Eve Woo AI Analyst",
         "type": "agent",
         "status": "ready",
         "transport": "eve-template",
         "url": "https://ivsv6y0dw05dc2w4hmr3nlqn.72.60.234.126.sslip.io",
         "model": "qwen/qwen3.6-flash",
-        "welcome": "Hi, I'm the WooCommerce analyst. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
+        "welcome": "Hi, I'm the Eve Woo AI Analyst. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
         "description": "WooCommerce store reports. Answers from read-only report tools."
+    },
+    {
+        "id": "woo-analyst-ai",
+        "name": "Woo Analyst AI Chat",
+        "type": "agent",
+        "status": "ready",
+        "transport": "eve-template",
+        "url": "",
+        "model": "qwen/qwen3.6-flash",
+        "welcome": "Hi, I'm the Woo Analyst AI Chat. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
+        "description": "Pure AI chat with the WooCommerce report tools. Answers from the store data."
     }
 ]
