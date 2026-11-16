@@ -56,5 +56,16 @@
         "model": "qwen/qwen3.6-flash",
         "welcome": "Hi, I'm the Eve data analyst. Ask me a question about the business, for example: How many paying customers do we have today?",
         "description": "Eve data analyst. Answers business questions from the warehouse."
+    },
+    {
+        "id": "woo-analyst",
+        "name": "WooCommerce Analyst",
+        "type": "agent",
+        "status": "ready",
+        "transport": "eve-template",
+        "url": "https://ivsv6y0dw05dc2w4hmr3nlqn.72.60.234.126.sslip.io",
+        "model": "qwen/qwen3.6-flash",
+        "welcome": "Hi, I'm the WooCommerce analyst. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
+        "description": "WooCommerce store reports. Answers from read-only report tools."
     }
 ]
