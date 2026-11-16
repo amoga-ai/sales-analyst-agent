@@ -35,11 +35,9 @@ export const { registry } = defineRegistry(catalog, {
       </button>
     ),
     MetricCard: ({ props }) => (
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-950">
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-          {props.label}
-        </p>
-        <p className="mt-2 text-2xl font-semibold tabular-nums">{props.value}</p>
+      <div className="flex h-full min-h-[120px] flex-col justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-950">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">{props.label}</p>
+        <p className="mt-2 text-3xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{props.value}</p>
       </div>
     ),
     Table: ({ props }) => (
@@ -83,29 +81,33 @@ export const { registry } = defineRegistry(catalog, {
     ),
     BarChart: ({ props }) => {
       const max = Math.max(1, ...props.values);
+      // Each bar gets its own series color, shown in the legend below.
+      const palette = ["#7c3aed", "#db2777", "#0891b2", "#f59e0b", "#16a34a", "#dc2626", "#64748b"];
       return (
         <div>
-          {props.title && (
-            <h4 className="mb-3 text-sm font-semibold">{props.title}</h4>
-          )}
+          {props.title && <h4 className="mb-3 text-sm font-semibold">{props.title}</h4>}
           <div className="flex flex-col gap-3">
             {props.labels.map((label, i) => (
               <div key={i} className="flex items-center gap-4 text-sm">
-                <span className="w-28 shrink-0 capitalize text-zinc-600 dark:text-zinc-400">
-                  {label}
-                </span>
+                <span className="w-28 shrink-0 text-zinc-600 dark:text-zinc-400">{label}</span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                   <div
-                    className="h-2 rounded-full bg-zinc-900 dark:bg-zinc-100"
-                    style={{ width: `${(props.values[i] / max) * 100}%` }}
+                    className="h-2 rounded-full"
+                    style={{ width: `${(props.values[i] / max) * 100}%`, background: palette[i % palette.length] }}
                   />
                 </div>
-                <span className="w-10 text-right font-medium tabular-nums">
-                  {props.values[i]}
-                </span>
+                <span className="w-10 text-right font-medium tabular-nums">{props.values[i]}</span>
               </div>
             ))}
           </div>
+          <ul className="mt-4 flex flex-wrap gap-4 text-xs text-zinc-600 dark:text-zinc-400">
+            {props.labels.map((label, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: palette[i % palette.length] }} />
+                {label}
+              </li>
+            ))}
+          </ul>
         </div>
       );
     },

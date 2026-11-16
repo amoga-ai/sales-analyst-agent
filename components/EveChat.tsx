@@ -3,8 +3,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
-import { JSONUIProvider, Renderer } from "@json-render/react";
-import { registry } from "@/lib/json-render/registry";
+import { ReportCard } from "@/components/ArtifactProvider";
 import { EveChatTransport } from "@/lib/chat/eve-transport";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
@@ -63,13 +62,7 @@ export default function EveChat({ toolbar, welcome }: { toolbar: ReactNode; welc
               );
             }
             if (part.type === "data-spec") {
-              return (
-                <div key={i} className="w-full">
-                  <JSONUIProvider registry={registry}>
-                    <Renderer spec={(part as any).data} registry={registry} />
-                  </JSONUIProvider>
-                </div>
-              );
+              return <ReportCard key={i} spec={(part as any).data} />;
             }
             return null;
           })}

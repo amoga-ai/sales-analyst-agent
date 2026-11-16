@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
 import ChatShell, { ChatInput } from "./ChatShell";
 import { EveNoAiTransport } from "@/lib/agents/eve-no-ai-transport";
+import { ReportCard } from "@/components/ArtifactProvider";
+import { dailySummarySpec } from "@/lib/json-render/summary-layout";
 
 export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; welcome: string }) {
     const [transport] = useState(() => new EveNoAiTransport());
@@ -56,13 +58,7 @@ export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; 
                                 if (part.type === "text") return <p key={i}>{part.text}</p>;
                                 if (part.type === "data-summary") {
                                     const d = part.data as { date: string; total: number; orders: number };
-                                    return (
-                                        <div key={i} className="mt-2 rounded-xl border border-zinc-200 bg-white p-4 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
-                                            <h3 className="font-semibold">Daily sales, {d.date}</h3>
-                                            <p>Total: {d.total}</p>
-                                            <p>Orders: {d.orders}</p>
-                                        </div>
-                                    );
+                                    return <ReportCard key={i} spec={dailySummarySpec(d)} />;
                                 }
                                 return null;
                             })}

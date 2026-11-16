@@ -3,56 +3,11 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
-import { JSONUIProvider, Renderer } from "@json-render/react";
-import { registry } from "@/lib/json-render/registry";
+import { ReportCard } from "@/components/ArtifactProvider";
 import { DefaultChatTransport } from "ai";
+import ApprovalCard, { type ApprovalData } from "@/components/ApprovalCard";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
-
-// The approval data sent by the analyst channel as a data-approval part.
-type ApprovalData = {
-    requestId: string;
-    prompt: string;
-    purpose: string;
-    options: { id: string; label: string }[];
-};
-
-// Shows the approval request with one button per option.
-function ApprovalCard({
-    data,
-    answeredWith,
-    disabled,
-    onAnswer,
-}: {
-    data: ApprovalData;
-    answeredWith?: string;
-    disabled: boolean;
-    onAnswer: (requestId: string, optionId: string) => void;
-}) {
-    return (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-700 dark:bg-amber-950">
-            <p className="font-medium text-zinc-900 dark:text-zinc-100">This query is expensive and needs your approval.</p>
-            {data.purpose && <p className="mt-1 text-zinc-700 dark:text-zinc-300">{data.purpose}</p>}
-            {answeredWith ? (
-                <p className="mt-3 text-xs text-zinc-500">Answered: {answeredWith}</p>
-            ) : (
-                <div className="mt-3 flex gap-2">
-                    {data.options.map((option) => (
-                        <button
-                            key={option.id}
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => onAnswer(data.requestId, option.id)}
-                            className="rounded-md border border-zinc-300 bg-white px-3 py-1 text-zinc-800 transition hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                        >
-                            {option.label}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
 
 export default function EveAnalystChat({ toolbar, welcome }: { toolbar: ReactNode; welcome: string }) {
     // Sends chat requests to the proxy route.
@@ -111,13 +66,7 @@ export default function EveAnalystChat({ toolbar, welcome }: { toolbar: ReactNod
                         }
                         // Query result as a json-render card.
                         if (part.type === "data-spec") {
-                            return (
-                                <div key={i} className="w-full">
-                                    <JSONUIProvider registry={registry}>
-                                        <Renderer spec={(part as any).data} registry={registry} />
-                                    </JSONUIProvider>
-                                </div>
-                            );
+                            return <ReportCard key={i} spec={(part as any).data} />;
                         }
                         // Approval request as buttons.
                         if (part.type === "data-approval") {

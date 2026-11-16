@@ -4,8 +4,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
-import { JSONUIProvider, Renderer } from "@json-render/react";
-import { registry } from "@/lib/json-render/registry";
+import { ReportCard } from "@/components/ArtifactProvider";
 import { BotChatTransport } from "@/lib/chat/bot-transport";
 import uiConfig from "@/bot-configs/sales-analyst/ui.json";
 import UserBar from "@/components/UserBar";
@@ -161,13 +160,7 @@ export default function WorkflowChat({ toolbar, flow }: { toolbar: ReactNode; fl
                             );
                         }
                         if (part.type === "data-spec") {
-                            return (
-                                <div key={i} className="w-full">
-                                    <JSONUIProvider registry={registry}>
-                                        <Renderer spec={(part as any).data} registry={registry} />
-                                    </JSONUIProvider>
-                                </div>
-                            );
+                            return <ReportCard key={i} spec={(part as any).data} />;
                         }
                         return null;
                     })}

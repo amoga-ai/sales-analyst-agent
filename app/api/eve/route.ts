@@ -52,10 +52,8 @@ export async function POST(req: NextRequest) {
     try {
         sent = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
     } catch (err) {
-        console.log("[eve] send failed:", String(err));
         return fail("Eve is not reachable right now. Please try again in a moment.", 503);
     }
-    console.log("[eve] send", Object.keys(body)[0], "status", sent.status);
     if (!sent.ok) return fail("Eve did not accept the message.", 502);
 
     const data = await sent.json().catch(() => null);
@@ -117,7 +115,6 @@ export async function POST(req: NextRequest) {
         }
     } catch (err) {
         streamFailed = true;
-        console.log("[eve] stream stopped:", String(err));
     } finally {
         clearTimeout(timer);
         await reader?.cancel().catch(() => {});

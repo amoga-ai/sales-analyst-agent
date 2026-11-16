@@ -1,72 +1,16 @@
-// components/AgentChat.tsx: Shared chat screen for template agents. Takes the agent id, title, and welcome from agents.json through app/page.tsx.
+// components/AgentChat.tsx: Shared chat screen for template agents. Reports show inline with an "Open in panel" button, and the panel opens on the right.
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
 import { JSONUIProvider, Renderer } from "@json-render/react";
+import ApprovalCard, { type ApprovalData } from "@/components/ApprovalCard";
 import { registry } from "@/lib/json-render/registry";
+import { reportSpec, toolPartSpec } from "@/lib/json-render/report-layout";
 import { DefaultChatTransport } from "ai";
 import UserBar from "@/components/UserBar";
-import { reportSpec } from "@/lib/json-render/report-layout";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
-
-// The approval data sent by the agent channel as a data-approval part.
-type ApprovalData = {
-    requestId: string;
-    prompt: string;
-    purpose: string;
-    options: { id: string; label: string }[];
-};
-
-// Shows the approval request with one button per option.
-function ApprovalCard({
-    data,
-    answeredWith,
-    disabled,
-    onAnswer,
-}: {
-    data: ApprovalData;
-    answeredWith?: string;
-    disabled: boolean;
-    onAnswer: (requestId: string, optionId: string) => void;
-}) {
-    return (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-700 dark:bg-amber-950">
-            <p className="font-medium text-zinc-900 dark:text-zinc-100">This query is expensive and needs your approval.</p>
-            {data.purpose && <p className="mt-1 text-zinc-700 dark:text-zinc-300">{data.purpose}</p>}
-            {answeredWith ? (
-                <p className="mt-3 text-xs text-zinc-500">Answered: {answeredWith}</p>
-            ) : (
-                <div className="mt-3 flex gap-2">
-                    {data.options.map((option) => (
-                        <button
-                            key={option.id}
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => onAnswer(data.requestId, option.id)}
-                            className="rounded-md border border-zinc-300 bg-white px-3 py-1 text-zinc-800 transition hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                        >
-                            {option.label}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
-
-function reportRows(output: unknown): unknown {
-    if (Array.isArray(output)) return output;
-    if (typeof output === "string") {
-        try { return JSON.parse(output); } catch { return output; }
-    }
-    const content = (output as { content?: { type: string; text?: string }[] })?.content;
-    const text = content?.find((c) => c.type === "text")?.text;
-    if (text) {
-        try { return JSON.parse(text); } catch { return output; }
-    }
-    return output;
-}
+import { ReportCard } from "@/components/ArtifactProvider";
 
 export default function AgentChat({
     agentId,
@@ -147,6 +91,14 @@ export default function AgentChat({
                                 </div>
                             );
                         }
+                        // MCP report tool results (dynamic tools), drawn as a table or chart.
+                        if (part.type === "dynamic-tool" && (part as any).state === "output-available") {
+                            return <ReportCard key={i} spec={toolPartSpec((part as any).toolName, (part as any).output)} />;
+                        }
+                        // WooCommerce report results, drawn as a bar chart.
+                        if (part.type === "data-report") {
+                            const report = (part as any).data as { tool: string; output: unknown };
+                            return <ReportCard key={i} spec={reportSpec(report.tool, report.output)} />;                        }
                         // Approval request as buttons.
                         if (part.type === "data-approval") {
                             const data = (part as any).data as ApprovalData;
@@ -158,27 +110,6 @@ export default function AgentChat({
                                         disabled={busy || Boolean(answers[data.requestId])}
                                         onAnswer={answer}
                                     />
-                                </div>
-                            );
-                        }
-                        if (part.type === "dynamic-tool" && (part as any).state === "output-available") {
-                            const name = (part as any).toolName as string;
-                            const tool = name.startsWith("woocommerce__") ? name : `woocommerce__${name}`;
-                            return (
-                                <div key={i} className="w-full">
-                                    <JSONUIProvider registry={registry}>
-                                        <Renderer spec={reportSpec(tool, reportRows((part as any).output))} registry={registry} />
-                                    </JSONUIProvider>
-                                </div>
-                            );
-                        }
-                        if (part.type === "data-report") {
-                            const report = (part as any).data as { tool: string; output: unknown };
-                            return (
-                                <div key={i} className="w-full">
-                                    <JSONUIProvider registry={registry}>
-                                        <Renderer spec={reportSpec(report.tool, report.output)} registry={registry} />
-                                    </JSONUIProvider>
                                 </div>
                             );
                         }
