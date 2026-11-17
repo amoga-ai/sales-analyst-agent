@@ -7,10 +7,11 @@ import { ReportCard } from "@/components/ArtifactProvider";
 import { EveChatTransport } from "@/lib/chat/eve-transport";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
+import PresetBar from "@/components/PresetBar";
 
 export default function EveChat({ toolbar, welcome }: { toolbar: ReactNode; welcome: string }) {
   const [transport] = useState(() => new EveChatTransport());
-  const { messages, sendMessage, status, error } = useChat({ transport });
+  const { messages, sendMessage, status, setMessages, error } = useChat({ transport });
   const [input, setInput] = useState("");
   const busy = status === "submitted" || status === "streaming";
 
@@ -70,6 +71,7 @@ export default function EveChat({ toolbar, welcome }: { toolbar: ReactNode; welc
       ))}
 
       {busy && <p className="text-xs text-zinc-500">Working…</p>}
+      <PresetBar setMessages={setMessages} />
       {error && <p className="text-xs text-red-600">Something went wrong. Please try again.</p>}
     </ChatShell>
   );

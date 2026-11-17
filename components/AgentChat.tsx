@@ -1,4 +1,4 @@
-// components/AgentChat.tsx: Shared chat screen for template agents. Reports show inline with an "Open in panel" button, and the panel opens on the right.
+// components/AgentChat.tsx: Shared chat screen for template agents. Adds optional preset buttons that run fixed report queries without a model.
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
@@ -11,6 +11,7 @@ import { DefaultChatTransport } from "ai";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
 import { ReportCard } from "@/components/ArtifactProvider";
+import PresetBar from "@/components/PresetBar";
 
 export default function AgentChat({
     agentId,
@@ -19,6 +20,7 @@ export default function AgentChat({
     toolbar,
     welcome,
     placeholder,
+    presets = [],
 }: {
     agentId: string;
     title: string;
@@ -26,13 +28,16 @@ export default function AgentChat({
     toolbar: ReactNode;
     welcome: string;
     placeholder?: string;
+    presets?: { id: string; label: string }[];
 }) {
     // Sends chat requests to this agent's proxy route.
     const [transport] = useState(() => new DefaultChatTransport({ api: `/api/agents/${agentId}/chat` }));
-    const { messages, sendMessage, status, error } = useChat({ transport });
+    const { messages, sendMessage, setMessages, status, error } = useChat({ transport });
     const [input, setInput] = useState("");
-    // Remembers which approvals were answered, so their buttons can't be clicked twice.
     const [answers, setAnswers] = useState<Record<string, string>>({});
+    const [presetCards, setPresetCards] = useState<{ id: string; spec: any }[]>([]);
+    const [loadingPreset, setLoadingPreset] = useState<string | null>(null);
+    const [presetError, setPresetError] = useState<string | null>(null);
     const busy = status === "submitted" || status === "streaming";
 
     // Sends a typed question.
@@ -69,7 +74,7 @@ export default function AgentChat({
             }
         >
             {messages.length === 0 && <Bubble role="assistant">{welcome}</Bubble>}
-
+            {presets.length > 0 && <PresetBar setMessages={setMessages} />}
             {messages.map((m) => (
                 <div key={m.id} className="flex flex-col gap-3">
                     {m.parts.map((part, i) => {
@@ -85,9 +90,7 @@ export default function AgentChat({
                         if (part.type === "data-spec") {
                             return (
                                 <div key={i} className="w-full">
-                                    <JSONUIProvider registry={registry}>
-                                        <Renderer spec={(part as any).data} registry={registry} />
-                                    </JSONUIProvider>
+                                    <ReportCard spec={(part as any).data} />
                                 </div>
                             );
                         }
@@ -98,7 +101,8 @@ export default function AgentChat({
                         // WooCommerce report results, drawn as a bar chart.
                         if (part.type === "data-report") {
                             const report = (part as any).data as { tool: string; output: unknown };
-                            return <ReportCard key={i} spec={reportSpec(report.tool, report.output)} />;                        }
+                            return <ReportCard key={i} spec={reportSpec(report.tool, report.output)} />;
+                        }
                         // Approval request as buttons.
                         if (part.type === "data-approval") {
                             const data = (part as any).data as ApprovalData;
@@ -117,7 +121,6 @@ export default function AgentChat({
                     })}
                 </div>
             ))}
-
             {busy && <p className="text-xs text-zinc-500">Working…</p>}
             {error && <p className="text-xs text-red-600">Something went wrong. Please try again.</p>}
         </ChatShell>

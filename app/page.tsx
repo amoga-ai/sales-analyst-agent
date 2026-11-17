@@ -1,10 +1,11 @@
-// app/page.tsx: Chat page. Holds the selected agent and model, picks the chat screen by agent transport, and wraps every screen in the artifact panel.
+// app/page.tsx: Chat page. Holds the selected agent and model, picks the chat screen by agent transport, and passes the preset buttons to the Woo agents.
 "use client";
 
 import { useState, type ReactNode } from "react";
 import agents from "@/lib/agents/agents.json";
 import type { Agent } from "@/components/AgentSelector";
 import { MODEL_OPTIONS } from "@/lib/agents/models";
+import { PRESETS } from "@/lib/presets/presets";
 import ChatToolbar from "@/components/ChatToolbar";
 import WorkflowChat from "@/components/WorkflowChat";
 import EveChat from "@/components/EveChat";
@@ -12,6 +13,9 @@ import EveNoAiSalesReview from "@/components/EveNoAiChat";
 import EveAnalystChat from "@/components/EveAnalystChat";
 import AgentChat from "@/components/AgentChat";
 import { ArtifactProvider } from "@/components/ArtifactProvider";
+
+// Preset buttons, shown only on the Woo agents.
+const WOO_PRESETS = PRESETS.map(({ id, label }) => ({ id, label }));
 
 export default function Page() {
   const list = agents as Agent[];
@@ -33,6 +37,7 @@ export default function Page() {
   // Template agents (eve-template) share one chat screen and are configured only in agents.json.
   let screen: ReactNode;
   if (agent.transport === "eve-template") {
+    const isWoo = agent.id.startsWith("woo");
     screen = (
       <AgentChat
         key={agent.id}
@@ -42,6 +47,7 @@ export default function Page() {
         toolbar={toolbar}
         welcome={agent.welcome}
         placeholder="Ask a question about the store"
+        presets={isWoo ? WOO_PRESETS : []}
       />
     );
   } else if (agent.transport === "eve-analyst") {

@@ -9,6 +9,7 @@ import { BotChatTransport } from "@/lib/chat/bot-transport";
 import uiConfig from "@/bot-configs/sales-analyst/ui.json";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
+import PresetBar from "@/components/PresetBar";
 
 type Ui =
     | { type: "text" }
@@ -168,17 +169,22 @@ export default function WorkflowChat({ toolbar, flow }: { toolbar: ReactNode; fl
             ))}
 
             {ui.type === "choice" && !busy && (
-                <div className="flex flex-wrap gap-2">
-                    {ui.options.map((option) => (
-                        <button
-                            key={option.value}
-                            onClick={() => send(option.label, option.value, option.loading)}
-                            className="rounded-full border border-indigo-300 bg-white px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 dark:border-indigo-700 dark:bg-zinc-900 dark:text-indigo-300"
-                        >
-                            {option.label}
-                        </button>
-                    ))}
-                </div>
+                <>
+                    <div>
+                        <PresetBar setMessages={setMessages} />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {ui.options.map((option) => (
+                            <button
+                                key={option.value}
+                                onClick={() => send(option.label, option.value, option.loading)}
+                                className="rounded-full border border-indigo-300 bg-white px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 dark:border-indigo-700 dark:bg-zinc-900 dark:text-indigo-300"
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                </>
             )}
 
             {busy && <p className="text-xs text-zinc-500">{loadingText ?? "Working…"}</p>}

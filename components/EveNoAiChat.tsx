@@ -6,10 +6,11 @@ import ChatShell, { ChatInput } from "./ChatShell";
 import { EveNoAiTransport } from "@/lib/agents/eve-no-ai-transport";
 import { ReportCard } from "@/components/ArtifactProvider";
 import { dailySummarySpec } from "@/lib/json-render/summary-layout";
+import PresetBar from "@/components/PresetBar";
 
 export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; welcome: string }) {
     const [transport] = useState(() => new EveNoAiTransport());
-    const { messages, sendMessage, status } = useChat({ transport });
+    const { messages, sendMessage, setMessages, status } = useChat({ transport });
     const [input, setInput] = useState("");
     const busy = status === "submitted" || status === "streaming";
 
@@ -43,28 +44,45 @@ export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; 
                             {welcome}
                         </div>
                     </div>
-                )}
 
+                )}
                 {messages.map((m) => (
-                    <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-                        <div
-                            className={
-                                m.role === "user"
-                                    ? "max-w-[80%] rounded-2xl bg-indigo-600 px-4 py-2 text-white"
-                                    : "max-w-[80%] rounded-2xl bg-zinc-100 px-4 py-2 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                    <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex flex-col gap-3"}>
+                        {m.parts.map((part, i) => {
+                            if (part.type === "text") {
+                                return (
+                                    <div
+                                        key={i}
+                                        className={
+                                            m.role === "user"
+                                                ? "max-w-[80%] rounded-2xl bg-indigo-600 px-4 py-2 text-white"
+                                                : "max-w-[80%] rounded-2xl bg-zinc-100 px-4 py-2 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                                        }
+                                    >
+                                        <p>{part.text}</p>
+                                    </div>
+                                );
                             }
-                        >
-                            {m.parts.map((part, i) => {
-                                if (part.type === "text") return <p key={i}>{part.text}</p>;
-                                if (part.type === "data-summary") {
-                                    const d = part.data as { date: string; total: number; orders: number };
-                                    return <ReportCard key={i} spec={dailySummarySpec(d)} />;
-                                }
-                                return null;
-                            })}
-                        </div>
+                            if (part.type === "data-spec") {
+                                return (
+                                    <div key={i} className="w-full">
+                                        <ReportCard spec={(part as any).data} />
+                                    </div>
+                                );
+                            }
+                            if (part.type === "data-summary") {
+                                const d = part.data as { date: string; total: number; orders: number };
+                                return (
+                                    <div key={i} className="w-full">
+                                        <ReportCard spec={dailySummarySpec(d)} />
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })}
                     </div>
                 ))}
+                <PresetBar setMessages={setMessages} />
             </div>
         </ChatShell>
     );
