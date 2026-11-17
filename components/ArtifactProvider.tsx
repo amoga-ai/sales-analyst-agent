@@ -1,17 +1,27 @@
-// components/ArtifactProvider.tsx: Shared artifact panel. ArtifactProvider puts the panel on the right of any chat screen, and ReportCard shows a file-style row in the chat with a download button.
+// components/ArtifactProvider.tsx: Shared artifact panel. ArtifactProvider puts the panel on the right of any chat screen, starting at half the window width. ReportCard shows a file-style row in the chat.
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 import ArtifactPanel, { specToCsv } from "@/components/ArtifactPanel";
 
-type Artifact = { title: string; spec: any };
+// An artifact is either a report (spec) or an HTML document (html).
+type Artifact = { title: string; spec?: any; html?: string };
 
-// Lets any ReportCard open a report in the panel.
+// Lets any card open an artifact in the panel.
 const OpenArtifactContext = createContext<((artifact: Artifact) => void) | null>(null);
 
-// Wraps a chat screen: the chat stays on the left, and the artifact panel opens on the right.
+// Returns the function that opens an artifact in the panel, or null outside a provider.
+export function useOpenArtifact() {
+    return useContext(OpenArtifactContext);
+}
+
+// Wraps a chat screen: the chat stays on the left, and the artifact panel opens on the right at half the window width.
 export function ArtifactProvider({ children }: { children: ReactNode }) {
     const [artifact, setArtifact] = useState<Artifact | null>(null);
+    // Panel width in pixels. Starts at half the window, then follows the drag handle.
+    const [width, setWidth] = useState(() =>
+        typeof window === "undefined" ? 640 : Math.round(window.innerWidth / 2),
+    );
     return (
         <OpenArtifactContext.Provider value={setArtifact}>
             <div className="flex">
@@ -23,7 +33,14 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
                             onClick={() => setArtifact(null)}
                             className="fixed inset-0 z-40 bg-black/40 md:hidden"
                         />
-                        <ArtifactPanel title={artifact.title} spec={artifact.spec} onClose={() => setArtifact(null)} />
+                        <ArtifactPanel
+                            title={artifact.title}
+                            spec={artifact.spec}
+                            html={artifact.html}
+                            onClose={() => setArtifact(null)}
+                            width={width}
+                            onWidthChange={setWidth}
+                        />
                     </>
                 )}
             </div>
@@ -42,10 +59,10 @@ function downloadCsv(title: string, spec: any) {
     URL.revokeObjectURL(url);
 }
 
-// A file-style row in the chat, like the reference: an icon, the title, the type, and a download button. Clicking the row opens the report in the side panel.
+// A file-style row in the chat with a view button (opens the panel) and a download button.
 export function ReportCard({ spec }: { spec: any }) {
     const [createdAt] = useState(() => new Date());
-    const open = useContext(OpenArtifactContext);
+    const open = useOpenArtifact();
     const title: string = spec?.elements?.card?.props?.title ?? "Report";
     if (!open) return null;
     return (

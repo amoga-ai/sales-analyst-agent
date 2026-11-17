@@ -35,9 +35,9 @@ export const { registry } = defineRegistry(catalog, {
       </button>
     ),
     MetricCard: ({ props }) => (
-      <div className="flex h-full min-h-[120px] flex-col justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">{props.label}</p>
-        <p className="mt-2 text-3xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{props.value}</p>
+      <div className="flex h-full min-h-[140px] flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <p className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{props.label}</p>
+        <p className="mt-4 text-4xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{props.value}</p>
       </div>
     ),
     Table: ({ props }) => (
