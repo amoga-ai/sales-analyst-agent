@@ -3,6 +3,7 @@ allowBuilds:
   cbor-extract: true
   esbuild: true
   sharp: false
+  tesseract.js: true
   unrs-resolver: false
 minimumReleaseAgeExclude:
   - '@ai-sdk/gateway@4.0.142'

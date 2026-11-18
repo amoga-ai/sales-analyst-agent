@@ -36,7 +36,7 @@
     },
     {
         "id": "eve-no-ai-sales-review",
-        "name": "Eve No AI Sales Review",
+        "name": "Non AI Eve WooCommerce Analyst",
         "type": "fixed",
         "status": "ready",
         "transport": "eve-workflow",

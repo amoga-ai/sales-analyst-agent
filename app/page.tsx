@@ -13,6 +13,7 @@ import EveNoAiSalesReview from "@/components/EveNoAiChat";
 import EveAnalystChat from "@/components/EveAnalystChat";
 import AgentChat from "@/components/AgentChat";
 import { ArtifactProvider } from "@/components/ArtifactProvider";
+import WooAnalystAIChat from "@/components/WooAnalystAIChat";
 
 // Preset buttons, shown only on the Woo agents.
 const WOO_PRESETS = PRESETS.map(({ id, label }) => ({ id, label }));
@@ -33,10 +34,10 @@ export default function Page() {
     />
   );
 
-  // The key starts a fresh chat when the agent changes, so messages from different agents don't mix.
-  // Template agents (eve-template) share one chat screen and are configured only in agents.json.
   let screen: ReactNode;
-  if (agent.transport === "eve-template") {
+  if (agent.id === "woo-analyst-ai") {
+    screen = <WooAnalystAIChat key={agent.id} toolbar={toolbar} title={agent.name} subtitle={agent.description} />;
+  } else if (agent.transport === "eve-template") {
     const isWoo = agent.id.startsWith("woo");
     screen = (
       <AgentChat
@@ -55,7 +56,7 @@ export default function Page() {
   } else if (agent.transport === "eve") {
     screen = <EveChat key={agent.id} toolbar={toolbar} welcome={agent.welcome} />;
   } else if (agent.transport === "eve-workflow") {
-    screen = <EveNoAiSalesReview key={agent.id} toolbar={toolbar} welcome={agent.welcome} />;
+    screen = <EveNoAiSalesReview key={agent.id} toolbar={toolbar} welcome={agent.welcome} title={agent.name} subtitle={agent.description} />;
   } else {
     screen = <WorkflowChat key={agent.id} toolbar={toolbar} flow={agent.flow} />;
   }

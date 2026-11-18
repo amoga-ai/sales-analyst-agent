@@ -1,14 +1,17 @@
 // Runs one preset's Woo report tool directly (no AI model) and returns a json-render spec. Returns the error text and the tool names found, to help debugging.
-import { createMCPClient } from "@ai-sdk/mcp";
+import { connectWooMcp, loadMcpTools, MCP_TOOL_TIMEOUT_MS, type WooMcpClient } from "@/lib/mcp/woo-client";
+import { withTimeout } from "@/lib/api/timeout";
 import { reportRows, reportSpec } from "@/lib/json-render/report-layout";
 import { PRESETS } from "@/lib/presets/presets";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-function pendingSentence(output: any): string {
-    const rows = JSON.parse(output.content[0].text) as { slug: string; total: number }[];
-    const pending = rows.find((r) => r.slug === "pending")?.total ?? 0;
+// Reads the rows with reportRows, the same reader the chart uses. If the rows are not a list, there is no sentence and the chart still shows.
+function pendingSentence(output: unknown): string | undefined {
+    const rows = reportRows(output);
+    if (!Array.isArray(rows)) return undefined;
+    const pending = (rows as { slug?: string; total?: number }[]).find((r) => r?.slug === "pending")?.total ?? 0;
     return `There are ${pending} pending orders.`;
 }
 
@@ -40,11 +43,16 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
         return Response.json({ error: "WOO_MCP_URL or WOO_MCP_TOKEN is not set" }, { status: 500 });
     }
 
-    const mcp = await createMCPClient({
-        transport: { type: "http", url: mcpUrl, headers: { Authorization: `Bearer ${mcpToken}` } },
-    });
+    // Connecting is inside the try, so an MCP server that is down or slow returns a JSON error instead of crashing the route.
+    let mcp: WooMcpClient | undefined;
     try {
-        const tools = (await mcp.tools()) as unknown as Record<string, { execute: (input: unknown, options: unknown) => Promise<unknown> }>;
+        try {
+            mcp = await connectWooMcp(mcpUrl, mcpToken);
+        } catch (error) {
+            console.error("Preset: MCP connect failed:", error);
+            return Response.json({ error: "The store report service is not reachable. Please try again." }, { status: 502 });
+        }
+        const tools = (await loadMcpTools(mcp)) as unknown as Record<string, { execute: (input: unknown, options: unknown) => Promise<unknown> }>;
         // The MCP client names tools without the woocommerce__ prefix, so strip it before looking up.
         const bareName = preset.tool.replace(/^woocommerce__/, "");
         const tool = tools[bareName];
@@ -55,13 +63,17 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
             );
         }
 
-        const output = await tool.execute(preset.args, { toolCallId: `preset-${id}`, messages: [] });
+        const output = await withTimeout(
+            tool.execute(preset.args, { toolCallId: `preset-${id}`, messages: [] }),
+            MCP_TOOL_TIMEOUT_MS,
+            `Running ${bareName}`,
+        );
         const spec = reportSpec(preset.tool, reportRows(output));
         return Response.json({ text: presetSentence(preset.id, spec, output), spec });
     } catch (error) {
         console.error("Preset failed:", error);
         return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
     } finally {
-        await mcp.close();
+        await mcp?.close().catch(() => {});
     }
 }

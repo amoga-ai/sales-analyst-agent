@@ -47,7 +47,7 @@ export function Bubble({ role, children }: { role: "user" | "assistant"; childre
       <div
         className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           mine
-            ? "whitespace-pre-wrap bg-indigo-600 text-white"
+            ? "whitespace-pre-wrap bg-zinc-900 text-white"
             : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 [&_table]:my-2 [&_td]:border [&_td]:px-2 [&_td]:py-1 [&_th]:border [&_th]:px-2 [&_th]:py-1 [&_p]:my-2"
         }`}
       >
@@ -92,7 +92,7 @@ export function ChatInput({
         <button
           type="submit"
           disabled={disabled || !value.trim()}
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:bg-zinc-200 disabled:text-zinc-500 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
+          className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:bg-zinc-200 disabled:text-zinc-500 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
         >
           Send
         </button>

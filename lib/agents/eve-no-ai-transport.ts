@@ -62,6 +62,7 @@ export class EveNoAiTransport implements ChatTransport<UIMessage> {
                   date: data.result.date,
                   total: data.result.summary.total,
                   orders: data.result.summary.orders,
+                  topOrders: data.result.topOrders ?? [],
                 },
               } as UIMessageChunk);
               done = true;

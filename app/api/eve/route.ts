@@ -1,6 +1,7 @@
 // app/api/eve/route.ts: Sends chat messages to Eve, turns its results into text or cards, and answers approvals with yes or no.
 import { NextRequest } from "next/server";
 import * as cards from "@/lib/daily/cards";
+import { isSafeId } from "@/lib/api/ids";
 
 const EVE_URL = process.env.EVE_URL!;
 const AUTH = "Basic " + Buffer.from(`${process.env.EVE_USERNAME}:${process.env.EVE_PASSWORD}`).toString("base64");
@@ -34,6 +35,10 @@ export async function POST(req: NextRequest) {
     } catch {
         return fail("The message could not be read.", 400);
     }
+    // A null or missing sessionId starts a new session; anything else must be a safe id.
+    if (sessionId != null && !isSafeId(sessionId)) {
+        return fail("Invalid session id.", 400);
+    }
 
     const headers = { Authorization: AUTH, "Content-Type": "application/json" };
     const waitingOn = sessionId ? pending.get(sessionId) : undefined;
@@ -46,7 +51,7 @@ export async function POST(req: NextRequest) {
         body = { answers: [{ interactionId: waitingOn, optionId: "deny" }] };
     }
 
-    const url = sessionId ? `${EVE_URL}/eve/v1/session/${sessionId}` : `${EVE_URL}/eve/v1/session`;
+    const url = sessionId ? `${EVE_URL}/eve/v1/session/${encodeURIComponent(sessionId)}` : `${EVE_URL}/eve/v1/session`;
 
     let sent: Response;
     try {
@@ -59,7 +64,7 @@ export async function POST(req: NextRequest) {
     const data = await sent.json().catch(() => null);
     const deliveryId = data?.deliveryId;
     const id = sessionId ?? sent.headers.get("x-eve-session-id");
-    if (!deliveryId || !id) return fail("Eve sent an unexpected reply.", 502);
+    if (!deliveryId || !isSafeId(id)) return fail("Eve sent an unexpected reply.", 502);
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 120_000);
@@ -69,7 +74,7 @@ export async function POST(req: NextRequest) {
     let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
     try {
-        const stream = await fetch(`${EVE_URL}/eve/v1/session/${id}/stream`, { headers, signal: controller.signal });
+        const stream = await fetch(`${EVE_URL}/eve/v1/session/${encodeURIComponent(id)}/stream`, { headers, signal: controller.signal });
         reader = stream.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";

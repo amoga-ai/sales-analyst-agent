@@ -7,9 +7,9 @@ import { EveNoAiTransport } from "@/lib/agents/eve-no-ai-transport";
 import { ReportCard } from "@/components/ArtifactProvider";
 import { dailySummarySpec } from "@/lib/json-render/summary-layout";
 import PresetBar from "@/components/PresetBar";
+import UserBar from "@/components/UserBar";
 
-export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; welcome: string }) {
-    const [transport] = useState(() => new EveNoAiTransport());
+export default function EveNoAiChat({ toolbar, welcome, title, subtitle }: { toolbar: ReactNode; welcome: string; title: string; subtitle?: string }) {    const [transport] = useState(() => new EveNoAiTransport());
     const { messages, sendMessage, setMessages, status } = useChat({ transport });
     const [input, setInput] = useState("");
     const busy = status === "submitted" || status === "streaming";
@@ -24,8 +24,9 @@ export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; 
 
     return (
         <ChatShell
-            title="Eve No AI Sales Review"
-            subtitle="Workflow with no model calls"
+            topBar={<UserBar />}
+            title={title}
+            subtitle={subtitle}
             footer={
                 <ChatInput
                     value={input}
@@ -74,7 +75,7 @@ export default function EveNoAiChat({ toolbar, welcome }: { toolbar: ReactNode; 
                                 const d = part.data as { date: string; total: number; orders: number };
                                 return (
                                     <div key={i} className="w-full">
-                                        <ReportCard spec={dailySummarySpec(d)} />
+                                        <ReportCard spec={dailySummarySpec(d)} exportable />
                                     </div>
                                 );
                             }
