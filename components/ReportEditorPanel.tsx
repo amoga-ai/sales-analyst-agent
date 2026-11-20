@@ -38,12 +38,15 @@ function FilePreview({ file }: { file: SavedFile }) {
   return <p className="p-4 text-sm text-zinc-500">Loading preview…</p>;
 }
 
-export default function ReportEditorPanel({ title, spec, onClose }: { title: string; spec: any; onClose: () => void }) {
+export default function ReportEditorPanel({ title, spec, nonce, onClose }: { title: string; spec: any; nonce?: number; onClose: () => void }) {
   // Builds the starting content once, and keeps a handle on the editor for export.
   const [initialValue] = useState(() => reportToPlateValue(spec));
   const editorRef = useRef<any>(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<'edit' | 'preview'>('edit');
+  useEffect(() => {
+    setView('edit');
+  }, [nonce]);
   const [file, setFile] = useState<SavedFile | null>(null);
 
   // Exports the editor's current content in the chosen format, then shows its preview.

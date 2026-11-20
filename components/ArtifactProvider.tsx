@@ -15,6 +15,7 @@ type Artifact = {
     csv?: string;
     kind?: "export" | "saved" | "editor";
     saved?: { id: string; fileName: string };
+    nonce?: number;
 };
 const OpenArtifactContext = createContext<((artifact: Artifact) => void) | null>(null);
 export function useOpenArtifact() {
@@ -75,7 +76,7 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
                         ) : artifact.kind === "editor" ? (
                             // Editor panel for the report, with the same width as the others
                             <aside key={panelKey} className="flex h-screen shrink-0 flex-col border-l border-zinc-200 bg-white" style={{ width }}>
-                                <ReportEditorPanel title={artifact.title} spec={artifact.spec} onClose={() => setArtifact(null)} />
+                                <ReportEditorPanel title={artifact.title} spec={artifact.spec} nonce={artifact.nonce} onClose={() => setArtifact(null)} />
                             </aside>
                         ) : (
                             <ArtifactPanel
@@ -138,7 +139,7 @@ export function ReportCard({ spec, exportable = false, editable = false }: { spe
                     <circle cx="12" cy="12" r="3" />
                 </svg>
             </button>
-            {editable && <EditReportButton onClick={() => open({ title, spec, kind: "editor" })} />}
+            {editable && <EditReportButton onClick={() => open({ title, spec, kind: "editor", nonce: Date.now() })} />}
         </div>
     );
 }
