@@ -102,7 +102,9 @@ export default function ExportPanel({
     }
 
     return (
-        <div className="relative flex h-screen flex-col border-l border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-950" style={{ width }}>
+        <div
+            className="fixed inset-0 z-50 flex flex-col border-l border-zinc-300 bg-white md:relative md:inset-auto md:z-auto md:h-screen dark:border-zinc-700 dark:bg-zinc-950"
+            style={typeof window !== "undefined" && window.innerWidth >= 768 ? { width } : undefined}>
             <div
                 role="separator"
                 aria-orientation="vertical"

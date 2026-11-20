@@ -46,9 +46,9 @@ function totalsSpec(tool: string, output: unknown) {
         woocommerce__get_customers_report: "Customers",
         woocommerce__get_coupons_report: "Coupons by type",
     };
-    const rows = (Array.isArray(output) ? output : []) as { name: string; total: number }[];
+    const rows = (Array.isArray(output) ? output : ((output as { statuses?: unknown })?.statuses ?? [])) as { name: string; total: number }[];
     const shown = rows.filter((r) => r.total > 0);
-    return {
+    if (!shown.length) return { root: "card", elements: { card: { type: "Card", props: { title: titles[tool] ?? "Report" }, children: ["none"] }, none: { type: "Text", props: { content: "No data yet." }, children: [] } } };    return {
         root: "card",
         elements: {
             card: { type: "Card", props: { title: titles[tool] ?? "Report" }, children: ["chart"] },
@@ -75,4 +75,19 @@ export function reportSpec(tool: string, output: unknown) {
 export function toolPartSpec(toolName: string, output: unknown) {
     const tool = toolName.startsWith("woocommerce__") ? toolName : `woocommerce__${toolName}`;
     return reportSpec(tool, reportRows(output));
+}
+
+export function combineSpecs(specs: { elements: Record<string, any> }[], title: string) {
+    const elements: Record<string, any> = {};
+    const children: string[] = [];
+    specs.forEach((spec, n) => {
+        const rename = (id: string) => `r${n}_${id}`;
+        for (const [id, el] of Object.entries(spec.elements)) {
+            if (id === "card") continue;
+            elements[rename(id)] = { ...el, children: (el.children ?? []).map(rename) };
+        }
+        children.push(...(spec.elements.card.children ?? []).map(rename));
+    });
+    elements.card = { type: "Card", props: { title }, children };
+    return { root: "card", elements };
 }

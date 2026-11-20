@@ -3,15 +3,31 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
-import { JSONUIProvider, Renderer } from "@json-render/react";
 import ApprovalCard, { type ApprovalData } from "@/components/ApprovalCard";
-import { registry } from "@/lib/json-render/registry";
-import { reportSpec, toolPartSpec } from "@/lib/json-render/report-layout";
+import { reportSpec, toolPartSpec, combineSpecs } from "@/lib/json-render/report-layout";
 import { DefaultChatTransport } from "ai";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
 import { ReportCard } from "@/components/ArtifactProvider";
+import ReportFormats from "@/components/ReportFormats";
+import { specHasData } from "@/components/FormatButtons";
 import PresetBar from "@/components/PresetBar";
+
+// Turns a report result from a dynamic-tool part or a data-report part into a spec, or null if the part isn't a report.
+function reportSpecOf(part: any): any | null {
+    if (part.type === "dynamic-tool" && part.state === "output-available") return toolPartSpec(part.toolName, part.output);
+    if (part.type === "data-report") return reportSpec(part.data.tool, part.data.output);
+    return null;
+}
+
+function CardWithFormats({ spec }: { spec: any }) {
+    return (
+        <div className="flex w-full flex-col gap-2">
+            <ReportCard spec={spec} />
+            {specHasData(spec) && <ReportFormats spec={spec} />}
+        </div>
+    );
+}
 
 export default function AgentChat({
     agentId,
@@ -90,18 +106,21 @@ export default function AgentChat({
                         if (part.type === "data-spec") {
                             return (
                                 <div key={i} className="w-full">
-                                    <ReportCard spec={(part as any).data} />
+                                    <CardWithFormats spec={(part as any).data} />
                                 </div>
                             );
                         }
-                        // MCP report tool results (dynamic tools), drawn as a table or chart.
-                        if (part.type === "dynamic-tool" && (part as any).state === "output-available") {
-                            return <ReportCard key={i} spec={toolPartSpec((part as any).toolName, (part as any).output)} />;
-                        }
-                        // WooCommerce report results, drawn as a bar chart.
-                        if (part.type === "data-report") {
-                            const report = (part as any).data as { tool: string; output: unknown };
-                            return <ReportCard key={i} spec={reportSpec(report.tool, report.output)} />;
+                        // All report results in one message (tool parts or data-report parts) become one card with its buttons, drawn where the first one is.
+                        if (reportSpecOf(part)) {
+                            const reports = m.parts.filter((p) => reportSpecOf(p));
+                            if (reports[0] !== part) return null;
+                            const spec = combineSpecs(reports.map(reportSpecOf), "Store report");
+                            return (
+                                <div key={i} className="flex w-full flex-col gap-2">
+                                    <ReportCard spec={spec} />
+                                    {specHasData(spec) && <ReportFormats spec={spec} />}
+                                </div>
+                            );
                         }
                         // Approval request as buttons.
                         if (part.type === "data-approval") {

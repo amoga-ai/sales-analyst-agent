@@ -1,18 +1,28 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import ArtifactPanel from "@/components/ArtifactPanel";
 import ExportPanel from "@/components/ExportPanel";
+import SavedFilePanel from "@/components/SavedFilePanel";
+import ReportEditorPanel from "@/components/ReportEditorPanel";
+import EditReportButton from "@/components/EditReportButton";
 import { artifactDefinitions, artifactKindOf } from "@/artifacts/definitions";
 
-type Artifact = { title: string; spec?: any; html?: string; csv?: string; kind?: "export" };
+type Artifact = {
+    title: string;
+    spec?: any;
+    html?: string;
+    csv?: string;
+    kind?: "export" | "saved" | "editor";
+    saved?: { id: string; fileName: string };
+};
 const OpenArtifactContext = createContext<((artifact: Artifact) => void) | null>(null);
 export function useOpenArtifact() {
     return useContext(OpenArtifactContext);
 }
 
 function artifactKey(artifact: Artifact): string {
-    const text = JSON.stringify([artifact.title, artifact.spec ?? null, artifact.html ?? null, artifact.csv ?? null]);
+    const text = JSON.stringify([artifact.title, artifact.spec ?? null, artifact.html ?? null, artifact.csv ?? null, artifact.saved?.id ?? null]);
     let hash = 5381;
     for (let i = 0; i < text.length; i++) hash = ((hash * 33) ^ text.charCodeAt(i)) >>> 0;
     return `${hash.toString(36)}-${text.length}`;
@@ -22,6 +32,14 @@ function artifactKey(artifact: Artifact): string {
 export function ArtifactProvider({ children }: { children: ReactNode }) {
     const [artifact, setArtifact] = useState<Artifact | null>(null);
     const panelKey = useMemo(() => (artifact ? artifactKey(artifact) : ""), [artifact]);
+    useEffect(() => {
+        if (!artifact) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setArtifact(null);
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [artifact]);
     const [width, setWidth] = useState(() =>
         typeof window === "undefined" ? 640 : Math.round(window.innerWidth * 0.45),
     );
@@ -36,7 +54,16 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
                             onClick={() => setArtifact(null)}
                             className="fixed inset-0 z-40 bg-black/40 md:hidden"
                         />
-                        {artifact.kind === "export" ? (
+                        {artifact.kind === "saved" && artifact.saved ? (
+                            <SavedFilePanel
+                                key={panelKey}
+                                id={artifact.saved.id}
+                                fileName={artifact.saved.fileName}
+                                onClose={() => setArtifact(null)}
+                                width={width}
+                                onWidthChange={setWidth}
+                            />
+                        ) : artifact.kind === "export" ? (
                             <ExportPanel
                                 key={panelKey}
                                 title={artifact.title}
@@ -45,6 +72,11 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
                                 width={width}
                                 onWidthChange={setWidth}
                             />
+                        ) : artifact.kind === "editor" ? (
+                            // Editor panel for the report, with the same width as the others
+                            <aside key={panelKey} className="flex h-screen shrink-0 flex-col border-l border-zinc-200 bg-white" style={{ width }}>
+                                <ReportEditorPanel title={artifact.title} spec={artifact.spec} onClose={() => setArtifact(null)} />
+                            </aside>
                         ) : (
                             <ArtifactPanel
                                 key={panelKey}
@@ -66,7 +98,7 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
 }
 
 // A file-style row in the chat. The view button opens the panel. For the non-AI Eve agent (exportable), the panel shows the five file formats.
-export function ReportCard({ spec, exportable = false }: { spec: any; exportable?: boolean }) {
+export function ReportCard({ spec, exportable = false, editable = false }: { spec: any; exportable?: boolean; editable?: boolean }) {
     const [createdAt] = useState(() => new Date());
     const open = useOpenArtifact();
     const title: string = spec?.elements?.card?.props?.title ?? "Report";
@@ -106,6 +138,7 @@ export function ReportCard({ spec, exportable = false }: { spec: any; exportable
                     <circle cx="12" cy="12" r="3" />
                 </svg>
             </button>
+            {editable && <EditReportButton onClick={() => open({ title, spec, kind: "editor" })} />}
         </div>
     );
 }

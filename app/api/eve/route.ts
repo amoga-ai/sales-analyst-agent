@@ -27,6 +27,21 @@ function cardFor(out: any): unknown | null {
     return null;
 }
 
+function mergeCards(specs: any[], title: string) {
+    const elements: Record<string, unknown> = {};
+    const children: string[] = [];
+    for (const spec of specs) {
+        for (const [key, el] of Object.entries(spec.elements ?? {})) {
+            if (key === "card") {
+                children.push(...((el as any).children ?? []));
+                continue;
+            }
+            elements[key] = el;
+        }
+    }
+    return { root: "card", elements: { card: { type: "Card", props: { title }, children }, ...elements } };
+}
+
 export async function POST(req: NextRequest) {
     let sessionId: string | undefined;
     let text = "";
@@ -127,6 +142,16 @@ export async function POST(req: NextRequest) {
 
     if (streamFailed && messages.length === 0) {
         return fail("Eve stopped responding. Please try again.", 504);
+    }
+    const cardIdx = messages.flatMap((m, i) => ("spec" in m ? [i] : []));
+    if (cardIdx.length > 1) {
+        const reviewDate = text.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+        const merged = mergeCards(
+            cardIdx.map((i) => (messages[i] as { spec: any }).spec),
+            reviewDate ? `Daily Sales Review ${reviewDate}` : "Daily Sales Review",
+        );
+        messages[cardIdx[0]] = { spec: merged };
+        for (const i of cardIdx.slice(1).reverse()) messages.splice(i, 1);
     }
     return Response.json({ sessionId: id, messages });
 }

@@ -1,5 +1,5 @@
 "use client";
-// Eve No AI chat screen: uses useChat with the Eve workflow transport, so it looks and behaves like the other agent chats. No AI.
+// components/EveNoAiChat.tsx: Eve No AI chat screen. Uses the same card, format buttons, and saved-file panel as the AI chat. No AI.
 import { useState, type ReactNode } from "react";
 import { useChat } from "@ai-sdk/react";
 import ChatShell, { ChatInput } from "./ChatShell";
@@ -9,7 +9,18 @@ import { dailySummarySpec } from "@/lib/json-render/summary-layout";
 import PresetBar from "@/components/PresetBar";
 import UserBar from "@/components/UserBar";
 
-export default function EveNoAiChat({ toolbar, welcome, title, subtitle }: { toolbar: ReactNode; welcome: string; title: string; subtitle?: string }) {    const [transport] = useState(() => new EveNoAiTransport());
+export default function EveNoAiChat({
+    toolbar,
+    welcome,
+    title,
+    subtitle,
+}: {
+    toolbar: ReactNode;
+    welcome: string;
+    title: string;
+    subtitle?: string;
+}) {
+    const [transport] = useState(() => new EveNoAiTransport());
     const { messages, sendMessage, setMessages, status } = useChat({ transport });
     const [input, setInput] = useState("");
     const busy = status === "submitted" || status === "streaming";
@@ -45,7 +56,6 @@ export default function EveNoAiChat({ toolbar, welcome, title, subtitle }: { too
                             {welcome}
                         </div>
                     </div>
-
                 )}
                 {messages.map((m) => (
                     <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex flex-col gap-3"}>
@@ -65,17 +75,19 @@ export default function EveNoAiChat({ toolbar, welcome, title, subtitle }: { too
                                 );
                             }
                             if (part.type === "data-spec") {
+                                const spec = (part as any).data;
                                 return (
                                     <div key={i} className="w-full">
-                                        <ReportCard spec={(part as any).data} />
+                                        <ReportCard spec={spec} editable />
                                     </div>
                                 );
                             }
                             if (part.type === "data-summary") {
-                                const d = part.data as { date: string; total: number; orders: number };
+                                const d = part.data as { date: string; total: number; orders: number; topOrders?: any[] };
+                                const spec = dailySummarySpec(d);
                                 return (
                                     <div key={i} className="w-full">
-                                        <ReportCard spec={dailySummarySpec(d)} exportable />
+                                        <ReportCard spec={spec} editable />
                                     </div>
                                 );
                             }

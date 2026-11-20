@@ -1,4 +1,4 @@
-// components/EveChat.tsx: Eve agent chat. Shows the agent's welcome message first, then the conversation.
+// components/EveChat.tsx: Eve agent chat. Shows the agent's welcome message first, then the conversation. Table answers get the five format buttons.
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
@@ -8,6 +8,8 @@ import { EveChatTransport } from "@/lib/chat/eve-transport";
 import UserBar from "@/components/UserBar";
 import ChatShell, { Bubble, ChatInput } from "@/components/ChatShell";
 import PresetBar from "@/components/PresetBar";
+import { specHasData } from "@/components/FormatButtons";
+import ReportFormats from "@/components/ReportFormats";
 
 export default function EveChat({ toolbar, welcome }: { toolbar: ReactNode; welcome: string }) {
   const [transport] = useState(() => new EveChatTransport());
@@ -63,7 +65,13 @@ export default function EveChat({ toolbar, welcome }: { toolbar: ReactNode; welc
               );
             }
             if (part.type === "data-spec") {
-              return <ReportCard key={i} spec={(part as any).data} />;
+              const spec = (part as any).data;
+              return (
+                <div key={i} className="flex flex-col gap-2">
+                  <ReportCard spec={spec} />
+                  {specHasData(spec) && <ReportFormats spec={spec} />}
+                </div>
+              );
             }
             return null;
           })}
