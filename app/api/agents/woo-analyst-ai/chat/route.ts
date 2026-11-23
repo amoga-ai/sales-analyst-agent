@@ -1,11 +1,25 @@
-// Woo analyst chat API route. Normal chat uses the Woo report tools. When report text is sent, it answers only from that text (used by the editor's AI wand).
+// Woo analyst chat API route. Uses LiteLLM when its settings are present, otherwise OpenRouter. Normal chat uses the Woo report tools. When report text is sent, it answers only from that text (used by the editor's AI wand).
 import { streamText, generateText, convertToModelMessages, stepCountIs, tool, jsonSchema, type UIMessage, type ToolSet } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { connectWooMcp, loadMcpTools, type WooMcpClient } from "@/lib/mcp/woo-client";
 import { WOO_ANALYST_PROMPT } from "@/lib/agents/woo-analyst-prompt";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+// Picks the model: LiteLLM (the local Ollama model behind it) when LITELLM_BASE_URL is set, otherwise OpenRouter.
+function chatModel() {
+  const litellmUrl = process.env.LITELLM_BASE_URL;
+  if (litellmUrl) {
+    return createOpenAICompatible({
+      name: "litellm",
+      baseURL: litellmUrl,
+      apiKey: process.env.LITELLM_API_KEY ?? "",
+    })(process.env.LITELLM_MODEL ?? "my-ai");
+  }
+  return createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY ?? "" })(process.env.OPENROUTER_MODEL ?? "");
+}
 
 // Rules for answers that may use only the report text sent with the question.
 const TABLE_ONLY_PROMPT = `You answer questions using only the report data in the message. Do not use outside knowledge and do not invent numbers. If the report data does not contain the answer, reply only: "This report does not have that information." Keep the answer to one or two sentences.`;
@@ -56,14 +70,13 @@ function lastUserText(messages: UIMessage[]): string {
 }
 
 export async function POST(request: Request) {
-  // Reads the model and MCP settings from the environment.
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = process.env.OPENROUTER_MODEL;
+  // Checks the model and MCP settings. A model is needed from LiteLLM or from OpenRouter.
+  const hasModel = Boolean(process.env.LITELLM_BASE_URL) || Boolean(process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_MODEL);
   const mcpUrl = process.env.WOO_MCP_URL;
   const mcpToken = process.env.WOO_MCP_TOKEN;
-  if (!apiKey || !model || !mcpUrl || !mcpToken) {
+  if (!hasModel || !mcpUrl || !mcpToken) {
     return Response.json(
-      { error: "OPENROUTER_API_KEY, OPENROUTER_MODEL, WOO_MCP_URL or WOO_MCP_TOKEN is not set" },
+      { error: "A model (LITELLM_BASE_URL, or OPENROUTER_API_KEY and OPENROUTER_MODEL), WOO_MCP_URL and WOO_MCP_TOKEN must be set" },
       { status: 500 },
     );
   }
@@ -84,7 +97,7 @@ export async function POST(request: Request) {
   if (typeof reportData === "string") {
     try {
       const { text } = await generateText({
-        model: createOpenRouter({ apiKey })(model),
+        model: chatModel(),
         system: TABLE_ONLY_PROMPT,
         prompt: `Question: ${lastUserText(messages)}\n\nReport data:\n${reportData}`,
       });
@@ -110,7 +123,7 @@ export async function POST(request: Request) {
   const closeMcp = () => {
     if (closed) return;
     closed = true;
-    mcp.close().catch(() => {});
+    mcp.close().catch(() => { });
   };
 
   try {
@@ -122,7 +135,7 @@ export async function POST(request: Request) {
     } as ToolSet;
 
     const result = streamText({
-      model: createOpenRouter({ apiKey })(model),
+      model: chatModel(),
       system: `${WOO_ANALYST_PROMPT}\n\nWhen the user asks for a dashboard, document or report page, call create_document with a title and a complete HTML page. When the user asks for a spreadsheet, sheet, table to download, or CSV, call create_sheet with a title and CSV data, and do not call any report tool for that request. Call each report tool only once per reply.\n\nAfter you answer any question about the store, call suggest_followups once with up to 3 short questions that the store reports can answer, such as "Which status has the most orders?". Do not call it for other replies.`,
       messages: await convertToModelMessages(messages),
       tools,
