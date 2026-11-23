@@ -11,6 +11,8 @@ import { artifactDefinitions, artifactKindOf } from "@/artifacts/definitions";
 type Artifact = {
     title: string;
     spec?: any;
+    text?: string;
+    suggestions?: string[];
     html?: string;
     csv?: string;
     kind?: "export" | "saved" | "editor";
@@ -76,7 +78,7 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
                         ) : artifact.kind === "editor" ? (
                             // Editor panel for the report, with the same width as the others
                             <aside key={panelKey} className="flex h-screen shrink-0 flex-col border-l border-zinc-200 bg-white" style={{ width }}>
-                                <ReportEditorPanel title={artifact.title} spec={artifact.spec} nonce={artifact.nonce} onClose={() => setArtifact(null)} />
+                                <ReportEditorPanel title={artifact.title} spec={artifact.spec} text={artifact.text} suggestions={artifact.suggestions} nonce={artifact.nonce} onClose={() => setArtifact(null)} />
                             </aside>
                         ) : (
                             <ArtifactPanel
@@ -99,14 +101,14 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
 }
 
 // A file-style row in the chat. The view button opens the panel. For the non-AI Eve agent (exportable), the panel shows the five file formats.
-export function ReportCard({ spec, exportable = false, editable = false }: { spec: any; exportable?: boolean; editable?: boolean }) {
+export function ReportCard({ spec, text, suggestions, exportable = false, editable = false }: { spec: any; text?: string; suggestions?: string[]; exportable?: boolean; editable?: boolean }) {
     const [createdAt] = useState(() => new Date());
     const open = useOpenArtifact();
     const title: string = spec?.elements?.card?.props?.title ?? "Report";
     if (!open) return null;
     const openReport = () => open({ title, spec, kind: exportable ? "export" : undefined });
     return (
-        <div className="group flex w-full max-w-2xl items-center gap-3 rounded-xl border border-zinc-300 bg-white p-3 shadow-sm transition hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-800">
+        <div className="group flex w-full items-center gap-3 rounded-xl border border-zinc-300 bg-white p-3 shadow-sm transition hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-800">
             <button
                 type="button"
                 onClick={openReport}
@@ -139,7 +141,7 @@ export function ReportCard({ spec, exportable = false, editable = false }: { spe
                     <circle cx="12" cy="12" r="3" />
                 </svg>
             </button>
-            {editable && <EditReportButton onClick={() => open({ title, spec, kind: "editor", nonce: Date.now() })} />}
+            {editable && <EditReportButton onClick={() => open({ title, spec, text, suggestions, kind: "editor", nonce: Date.now() })} />}
         </div>
     );
 }

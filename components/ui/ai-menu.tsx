@@ -44,8 +44,10 @@ import {
   usePluginOption,
 } from 'platejs/react';
 import { type PlateEditor, useEditorRef } from 'platejs/react';
-
+import { docToText } from '@/lib/editor/doc-to-text';
+import { unsupportedNumbers } from '@/lib/editor/check-answer';
 import { Button } from '@/components/ui/button';
+import { TOP_CITY_TEST_DATA } from '@/components/ui/pie-chart-node';
 import {
   Command,
   CommandGroup,
@@ -58,6 +60,7 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { useWandSuggestions } from '@/lib/editor/wand-suggestions';
 import { commentPlugin } from '@/components/editor/plugins/comment-kit';
 
 import { AIChatEditor } from './ai-chat-editor';
@@ -481,6 +484,38 @@ Start writing a new paragraph AFTER <Document> ONLY ONE SENTENCE`
       });
     },
   },
+  // Preset: a table of the 10 largest cities by population.
+  topCitiesTable: {
+    icon: <Album />,
+    label: 'Top 10 city population table',
+    value: 'topCitiesTable',
+    onSelect: ({ editor, input }) => {
+      void editor.getApi(AIChatPlugin).aiChat.submit(input, {
+        mode: 'insert',
+        prompt:
+          'Create a markdown table of the 10 most populous cities in the world with the columns Rank, City, Country, Population. Put one line above the table that states the year of the population figures. Do not add any other text.',
+        toolName: 'generate',
+      });
+    },
+  },
+  // Preset: population share of the top 10 cities, as text (the editor cannot draw a pie chart).
+  topCitiesPie: {
+    icon: <Album />,
+    label: 'Top 10 city population pie chart',
+    value: 'topCitiesPie',
+    onSelect: ({ editor }) => {
+      // Inserts a pie chart block with test data; no AI call.
+      editor.tf.insertNodes(
+        {
+          type: 'pie_chart',
+          labels: TOP_CITY_TEST_DATA.labels,
+          values: TOP_CITY_TEST_DATA.values,
+          children: [{ text: '' }],
+        } as any,
+        { select: true }
+      );
+    },
+  },
   tryAgain: {
     icon: <CornerUpLeft />,
     label: 'Try again',
@@ -527,6 +562,8 @@ const menuStateItems: Record<
         aiChatItems.continueWrite,
         aiChatItems.summarize,
         aiChatItems.explain,
+        aiChatItems.topCitiesTable,
+        aiChatItems.topCitiesPie,
       ],
     },
   ],
@@ -582,11 +619,59 @@ export const AIMenuItems = ({
     return isSelecting ? 'selectionCommand' : 'cursorCommand';
   }, [isSelecting, messages]);
 
-  const menuGroups = React.useMemo(() => {
-    const items = menuStateItems[menuState];
+  const wandSuggestions = useWandSuggestions();
 
-    return items;
-  }, [menuState]);
+  const menuGroups = React.useMemo((): any[] => {
+    const items = menuStateItems[menuState];
+    const canAsk = menuState === 'cursorCommand' || menuState === 'selectionCommand';
+    if (!canAsk || wandSuggestions.length === 0) return items;
+
+    // The AI's suggested questions for this report, shown above the built-in commands.
+    const suggestionGroup = {
+      heading: 'Suggested for this report',
+      items: wandSuggestions.map((question) => ({
+        icon: <Wand />,
+        label: question,
+        value: `suggested:${question}`,
+        onSelect: ({ editor }: { editor: PlateEditor }) => {
+          // Sends the question and the report's table text to the Woo route. Shows a status line while waiting, then inserts the answer.
+          editor.getApi(AIChatPlugin).aiChat.hide();
+          const reportData = docToText(editor.children as any[]);
+          console.log('[wand] question:', question);
+          console.log('[wand] report data sent:', reportData);
+          // Status line shown while the answer is being made. It is marked so it can be removed later.
+          editor.tf.insertNodes([{ type: 'p', wandStatus: true, children: [{ text: 'Checking the report data…' }] }] as any);
+          const removeStatus = () => editor.tf.removeNodes({ match: (n: any) => n.wandStatus === true } as any);
+          void (async () => {
+            const res = await fetch('/api/agents/woo-analyst-ai/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                messages: [{ role: 'user', parts: [{ type: 'text', text: question }] }],
+                reportData,
+              }),
+            });
+            console.log('[wand] response status:', res.status);
+            const data = await res.json();
+            console.log('[wand] response body:', data);
+            removeStatus();
+            const answer: string = res.ok ? data.text : data.error;
+            const blocks: any[] = [{ type: 'p', children: [{ text: answer }] }];
+            const unsupported = res.ok ? unsupportedNumbers(answer, reportData) : [];
+            if (unsupported.length > 0) {
+              blocks.push({ type: 'p', children: [{ text: `Check: ${unsupported.join(', ')} not found in the report data.` }] });
+            }
+            editor.tf.insertNodes(blocks as any);
+          })().catch((error) => {
+            console.error('[wand] failed:', error);
+            removeStatus();
+            editor.tf.insertNodes([{ type: 'p', children: [{ text: 'The answer could not be created. Please try again.' }] }] as any);
+          });
+        },
+      })),
+    };
+    return [suggestionGroup, ...items];
+  }, [menuState, wandSuggestions]);
 
   React.useEffect(() => {
     if (menuGroups.length > 0 && menuGroups[0].items.length > 0) {
@@ -598,7 +683,7 @@ export const AIMenuItems = ({
     <>
       {menuGroups.map((group, index) => (
         <CommandGroup key={index} heading={group.heading}>
-          {group.items.map((menuItem) => (
+          {group.items.map((menuItem: any) => (
             <CommandItem
               key={menuItem.value}
               className="[&_svg]:text-muted-foreground"

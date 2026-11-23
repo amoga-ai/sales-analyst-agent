@@ -79,35 +79,27 @@ export const { registry } = defineRegistry(catalog, {
         </div>
       </div>
     ),
-    BarChart: ({ props }) => {
+        BarChart: ({ props }) => {
       const max = Math.max(1, ...props.values);
-      // Each bar gets its own series color, shown in the legend below.
+      // Each bar gets its own color.
       const palette = ["#7c3aed", "#db2777", "#0891b2", "#f59e0b", "#16a34a", "#dc2626", "#64748b"];
       return (
         <div>
           {props.title && <h4 className="mb-3 text-sm font-semibold">{props.title}</h4>}
-          <div className="flex flex-col gap-3">
+          <div className="flex h-56 items-end gap-4">
             {props.labels.map((label, i) => (
-              <div key={i} className="flex items-center gap-4 text-sm">
-                <span className="w-28 shrink-0 text-zinc-600 dark:text-zinc-400">{label}</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+              <div key={i} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                <span className="text-sm font-medium tabular-nums">{props.values[i]}</span>
+                <div className="flex h-40 w-full items-end">
                   <div
-                    className="h-2 rounded-full"
-                    style={{ width: `${(props.values[i] / max) * 100}%`, background: palette[i % palette.length] }}
+                    className="w-full rounded-t-md"
+                    style={{ height: `${(props.values[i] / max) * 100}%`, background: palette[i % palette.length] }}
                   />
                 </div>
-                <span className="w-10 text-right font-medium tabular-nums">{props.values[i]}</span>
+                <span className="min-h-8 w-full text-center text-xs leading-tight text-zinc-600 dark:text-zinc-400">{label}</span>
               </div>
             ))}
           </div>
-          <ul className="mt-4 flex flex-wrap gap-4 text-xs text-zinc-600 dark:text-zinc-400">
-            {props.labels.map((label, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: palette[i % palette.length] }} />
-                {label}
-              </li>
-            ))}
-          </ul>
         </div>
       );
     },

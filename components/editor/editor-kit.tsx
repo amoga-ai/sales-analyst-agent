@@ -2,7 +2,7 @@
 
 import { type Value, TrailingBlockPlugin } from 'platejs';
 import { type TPlateEditor, useEditorRef } from 'platejs/react';
-
+import { PieChartKit } from '@/components/editor/plugins/pie-chart-kit';
 import { AIKit } from '@/components/editor/plugins/ai-kit';
 import { AlignKit } from '@/components/editor/plugins/align-kit';
 import { AutoformatKit } from '@/components/editor/plugins/autoformat-kit';
@@ -31,6 +31,7 @@ import { ListKit } from '@/components/editor/plugins/list-kit';
 import { MarkdownKit } from '@/components/editor/plugins/markdown-kit';
 import { MathKit } from '@/components/editor/plugins/math-kit';
 import { MediaKit } from '@/components/editor/plugins/media-kit';
+import { ChartKit } from '@/components/editor/plugins/chart-kit';
 import { MentionKit } from '@/components/editor/plugins/mention-kit';
 import { SlashKit } from '@/components/editor/plugins/slash-kit';
 import { SuggestionKit } from '@/components/editor/plugins/suggestion-kit';
@@ -55,7 +56,8 @@ export const EditorKit = [
   ...DateKit,
   ...LinkKit,
   ...MentionKit,
-
+  ...ChartKit,
+  ...PieChartKit,
   // Marks
   ...BasicMarksKit,
   ...FontKit,

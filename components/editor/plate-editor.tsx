@@ -6,7 +6,6 @@ import { normalizeStaticValue, type Value } from 'platejs';
 import { Plate, usePlateEditor } from 'platejs/react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { EditorKit } from '@/components/editor/editor-kit';
-import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 
 export function PlateEditor({ initialValue, editorRef }: { initialValue?: Value; editorRef?: { current: any } }) {
@@ -21,8 +20,6 @@ export function PlateEditor({ initialValue, editorRef }: { initialValue?: Value;
         <EditorContainer>
           <Editor variant="demo" />
         </EditorContainer>
-
-        <SettingsDialog />
       </Plate>
     </TooltipProvider>
   );

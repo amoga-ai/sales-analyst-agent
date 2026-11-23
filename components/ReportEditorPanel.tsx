@@ -3,9 +3,11 @@
 // Side panel for one report: the editor with format buttons, and a preview of each exported file with a Download button.
 import { useEffect, useRef, useState } from 'react';
 import { PlateEditor } from '@/components/editor/plate-editor';
-import FormatButtons, { type FormatId } from '@/components/FormatButtons';
+import type { FormatId } from '@/components/FormatButtons';
 import { reportToPlateValue } from '@/lib/editor/report-to-plate';
+import { textToBlocks } from '@/lib/editor/text-to-blocks';
 import { plateToReport } from '@/lib/editor/plate-to-report';
+import { WandSuggestionsContext } from '@/lib/editor/wand-suggestions';
 
 type SavedFile = { id: string; fileName: string };
 
@@ -38,9 +40,11 @@ function FilePreview({ file }: { file: SavedFile }) {
   return <p className="p-4 text-sm text-zinc-500">Loading preview…</p>;
 }
 
-export default function ReportEditorPanel({ title, spec, nonce, onClose }: { title: string; spec: any; nonce?: number; onClose: () => void }) {
-  // Builds the starting content once, and keeps a handle on the editor for export.
-  const [initialValue] = useState(() => reportToPlateValue(spec));
+export default function ReportEditorPanel({ title, spec, text, suggestions = [], nonce, onClose }: { title: string; spec: any; text?: string; suggestions?: string[]; nonce?: number; onClose: () => void }) {  // Builds the starting content once, and keeps a handle on the editor for export.
+  const [initialValue] = useState(() => {
+    const [heading, ...rest] = reportToPlateValue(spec);
+    return [heading, ...textToBlocks(text), ...rest, { type: 'p', children: [{ text: '' }] }];
+  });
   const editorRef = useRef<any>(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<'edit' | 'preview'>('edit');
@@ -80,9 +84,8 @@ export default function ReportEditorPanel({ title, spec, nonce, onClose }: { tit
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b p-3">
-        <FormatButtons onSelect={exportAs} busy={busy} />
-        {file && (
+      {file && (
+        <div className="flex flex-wrap items-center gap-2 border-b p-3">
           <div className="ml-auto flex items-center gap-2 text-sm">
             <button
               type="button"
@@ -105,13 +108,15 @@ export default function ReportEditorPanel({ title, spec, nonce, onClose }: { tit
               </a>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-hidden">
         {/* The editor stays mounted while the preview shows, so edits are kept */}
         <div className={view === 'edit' ? 'h-full overflow-y-auto p-4' : 'hidden'}>
-          <PlateEditor initialValue={initialValue as any} editorRef={editorRef} />
+          <WandSuggestionsContext.Provider value={suggestions}>
+            <PlateEditor initialValue={initialValue as any} editorRef={editorRef} />
+        </WandSuggestionsContext.Provider>
         </div>
         {view === 'preview' && file && (
           <div className="h-full">

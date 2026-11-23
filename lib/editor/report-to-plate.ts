@@ -25,10 +25,20 @@ export function reportToPlateValue(spec: any): any[] {
                 ],
             });
         }
-        if (el.type === "BarChart" || el.type === "DonutChart") {
-            // Draws the chart to a picture; the type value must match what chart-to-png.ts expects.
+        if (el.type === "BarChart") {
+            // Adds an editable bar chart block with the report's labels and values.
+            blocks.push({
+                type: "chart",
+                title: el.props.title ?? "",
+                labels: el.props.labels,
+                values: el.props.values,
+                children: [{ text: "" }],
+            });
+        }
+        if (el.type === "DonutChart") {
+            // Draws the donut to a picture; the type value must match what chart-to-png.ts expects.
             const url = chartToPng({
-                type: el.type === "DonutChart" ? "donut" : "bar",
+                type: "donut",
                 title: el.props.title,
                 labels: el.props.labels,
                 values: el.props.values,
