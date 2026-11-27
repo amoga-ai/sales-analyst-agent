@@ -89,5 +89,16 @@
         "model": "phi4-mini",
         "welcome": "Hi, I'm the Local AI Woo Analyst. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
         "description": "Local model test. Same report tools as the Woo Analyst AI Chat."
+    },
+    {
+        "id": "eve-combrain-agent",
+        "name": "Eve combrain agent",
+        "type": "agent",
+        "status": "ready",
+        "transport": "eve-brain",
+        "url": "",
+        "model": null,
+        "welcome": "Hi, I'm the Eve combrain agent. Ask me anything about the company.",
+        "description": "Company brain agent with private memory."
     }
 ]

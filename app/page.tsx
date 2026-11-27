@@ -14,7 +14,7 @@ import EveAnalystChat from "@/components/EveAnalystChat";
 import AgentChat from "@/components/AgentChat";
 import { ArtifactProvider } from "@/components/ArtifactProvider";
 import WooAnalystAIChat from "@/components/WooAnalystAIChat";
-
+import BrainChat from "@/components/BrainChat";
 // Preset buttons, shown only on the Woo agents.
 const WOO_PRESETS = PRESETS.map(({ id, label }) => ({ id, label }));
 
@@ -41,7 +41,7 @@ export default function Page() {
   if (agent.id === "woo-analyst-ai") {
     screen = <WooAnalystAIChat key={agent.id} toolbar={toolbar} title={agent.name} subtitle={agent.description} />;
   } else if (agent.id === "local-woo-analyst") {
-    screen = <WooAnalystAIChat key={agent.id} toolbar={toolbar} title={agent.name} subtitle={agent.description} api="/api/agents/local-woo-analyst/chat" model={localModel}/>;
+    screen = <WooAnalystAIChat key={agent.id} toolbar={toolbar} title={agent.name} subtitle={agent.description} api="/api/agents/local-woo-analyst/chat" model={localModel} />;
   } else if (agent.transport === "eve-template") {
     const isWoo = agent.id.startsWith("woo");
     screen = (
@@ -62,7 +62,10 @@ export default function Page() {
     screen = <EveChat key={agent.id} toolbar={toolbar} welcome={agent.welcome} />;
   } else if (agent.transport === "eve-workflow") {
     screen = <EveNoAiSalesReview key={agent.id} toolbar={toolbar} welcome={agent.welcome} title={agent.name} subtitle={agent.description} />;
-  } else {
+  } else if (agent.transport === "eve-brain") {
+    screen = <BrainChat key={agent.id} toolbar={toolbar} welcome={agent.welcome} title={agent.name} subtitle={agent.description} />;
+  }
+  else {
     screen = <WorkflowChat key={agent.id} toolbar={toolbar} flow={agent.flow} />;
   }
 
