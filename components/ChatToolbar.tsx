@@ -12,12 +12,14 @@ export default function ChatToolbar({
   model,
   onModelChange,
   modelDisabled,
+  modelOptions = MODEL_OPTIONS
 }: {
   agentId: string;
   onAgentChange: (id: string) => void;
   model: string;
   onModelChange: (model: string) => void;
   modelDisabled?: boolean;
+  modelOptions?: { value: string; label: string }[];
 }) {
   const agentOptions = (agents as Agent[]).map((a) => ({
     value: a.id,
@@ -26,7 +28,7 @@ export default function ChatToolbar({
   }));
   return (
     <div className="flex flex-wrap items-center gap-1">
-      <PopupMenu prefix="Model" value={model} options={MODEL_OPTIONS} onChange={onModelChange} disabled={modelDisabled} />
+      <PopupMenu prefix="Model" value={model} options={modelOptions} onChange={onModelChange} disabled={modelDisabled} />
       <PopupMenu prefix="Agent" value={agentId} options={agentOptions} onChange={onAgentChange} />
     </div>
   );

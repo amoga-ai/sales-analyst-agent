@@ -4,7 +4,7 @@
 import { useState, type ReactNode } from "react";
 import agents from "@/lib/agents/agents.json";
 import type { Agent } from "@/components/AgentSelector";
-import { MODEL_OPTIONS } from "@/lib/agents/models";
+import { MODEL_OPTIONS, LOCAL_MODEL_OPTIONS } from "@/lib/agents/models";
 import { PRESETS } from "@/lib/presets/presets";
 import ChatToolbar from "@/components/ChatToolbar";
 import WorkflowChat from "@/components/WorkflowChat";
@@ -24,19 +24,24 @@ export default function Page() {
   const [model, setModel] = useState(MODEL_OPTIONS[0]?.value ?? "");
   const agent = list.find((a) => a.id === agentId) ?? list[0];
 
+  const isLocal = agent.id === "local-woo-analyst";
+  const localModel = LOCAL_MODEL_OPTIONS.some((m) => m.value === model) ? model : (LOCAL_MODEL_OPTIONS[0]?.value ?? "");
   const toolbar = (
     <ChatToolbar
       agentId={agent.id}
       onAgentChange={setAgentId}
-      model={model}
+      model={isLocal ? localModel : model}
       onModelChange={setModel}
-      modelDisabled={agent.transport !== "eve"}
+      modelOptions={isLocal ? LOCAL_MODEL_OPTIONS : undefined}
+      modelDisabled={agent.transport !== "eve" && !isLocal}
     />
   );
 
   let screen: ReactNode;
   if (agent.id === "woo-analyst-ai") {
     screen = <WooAnalystAIChat key={agent.id} toolbar={toolbar} title={agent.name} subtitle={agent.description} />;
+  } else if (agent.id === "local-woo-analyst") {
+    screen = <WooAnalystAIChat key={agent.id} toolbar={toolbar} title={agent.name} subtitle={agent.description} api="/api/agents/local-woo-analyst/chat" model={localModel}/>;
   } else if (agent.transport === "eve-template") {
     const isWoo = agent.id.startsWith("woo");
     screen = (

@@ -10,9 +10,8 @@ import { useOpenArtifact } from "@/components/ArtifactProvider";
 import { ReportBlock } from "@/components/reports/ReportBlock";
 import { toolPartSpec } from "@/lib/json-render/report-layout";
 
-type Props = { toolbar: ReactNode; title: string; subtitle?: string };
+type Props = { toolbar: ReactNode; title: string; subtitle?: string; api?: string; model?: string };
 
-// Shared settings for the eye icon on file cards.
 const iconButton = "flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-zinc-600 hover:bg-zinc-100";
 const eyeIcon = (
   <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -73,9 +72,8 @@ function renderPart(part: any, key: number, open: ((artifact: any) => void) | nu
   return null;
 }
 
-export default function WooAnalystAIChat({ toolbar, title, subtitle }: Props) {
-  // Same agent route as before, so the answers come from the same backend.
-  const [transport] = useState(() => new DefaultChatTransport({ api: "/api/agents/woo-analyst-ai/chat" }));
+export default function WooAnalystAIChat({ toolbar, title, subtitle, api = "/api/agents/woo-analyst-ai/chat", model }: Props) {  
+  const [transport] = useState(() => new DefaultChatTransport({ api }));
   const { messages, sendMessage, status, error } = useChat({ transport });
   const open = useOpenArtifact();
   const [input, setInput] = useState("");

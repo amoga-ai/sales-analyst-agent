@@ -78,5 +78,16 @@
         "model": "qwen/qwen3.6-flash",
         "welcome": "Hi, I'm the Woo Analyst AI Chat. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
         "description": "Pure AI chat with the WooCommerce report tools. Answers from the store data."
+    },
+    {
+        "id": "local-woo-analyst",
+        "name": "Local AI Woo Analyst",
+        "type": "agent",
+        "status": "ready",
+        "transport": "eve-template",
+        "url": "",
+        "model": "phi4-mini",
+        "welcome": "Hi, I'm the Local AI Woo Analyst. Ask me about sales, orders, products, customers, or coupons, for example: How many orders are pending?",
+        "description": "Local model test. Same report tools as the Woo Analyst AI Chat."
     }
 ]

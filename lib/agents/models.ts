@@ -4,3 +4,9 @@ export const MODEL_OPTIONS = (process.env.NEXT_PUBLIC_AI_MODELS ?? "")
   .map((m) => m.trim())
   .filter(Boolean)
   .map((m) => ({ value: m, label: m }));
+
+export const LOCAL_MODEL_OPTIONS = (process.env.NEXT_PUBLIC_LOCAL_AI_MODELS ?? "")
+  .split(",")
+  .map((m) => m.trim())
+  .filter(Boolean)
+  .map((m) => ({ value: m, label: m }));
